@@ -1,0 +1,77 @@
+.modal {
+  top: 5rem;
+  min-width: 30%;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  animation: fade-slide-in-from-top 0.5s ease-in-out;
+  margin: auto;
+}
+
+.backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 100000;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.actions button {
+  background: transparent;
+  border: none;
+  border-radius: 5px;
+  color: #201e1a;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.actions button:hover {
+  color: #453719;
+}
+
+.actions button:last-of-type {
+  background: #271e07;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1rem;
+  color: #f9efda;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.actions button:last-of-type:hover {
+  background: #382e1b;
+}
+
+@keyframes fade-slide-in-from-top {
+  0% {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-slide-in-from-right {
+  0% {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

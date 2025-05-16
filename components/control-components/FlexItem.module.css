@@ -1,0 +1,4 @@
+.flexItem {
+  box-sizing: border-box;
+  flex: calc((100% - (2 * var(--gap))) / 2);
+}

@@ -1,0 +1,28 @@
+:root {
+  --gap: 1rem;
+}
+
+.flexContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+.color {
+  background-color: hsl(0, 0%, 96%);
+}
+
+.spacing {
+  padding: 1em;
+}
+
+.flexItem {
+  box-sizing: border-box;
+  flex: calc((100% - (2 * var(--gap))) / 2);
+}
+
+@media screen and (max-width: 790px) {
+  .flexContainer {
+    flex-direction: column;
+  }
+}

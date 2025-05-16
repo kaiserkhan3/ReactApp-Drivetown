@@ -1,0 +1,9 @@
+:root {
+  --gap: 1rem;
+}
+
+.flexContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
