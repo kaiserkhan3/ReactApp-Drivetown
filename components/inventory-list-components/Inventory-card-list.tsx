@@ -15,7 +15,7 @@ export default function InventoryCardList({
 
   const handleScroll = () => {
     if (
-      listRef.current?.clientHeight! + listRef.current?.scrollTop! + 1 >=
+      listRef.current?.clientHeight! + listRef.current?.scrollTop! + 10 >=
       listRef.current?.scrollHeight!
     ) {
       fetchNextPage();
@@ -28,31 +28,30 @@ export default function InventoryCardList({
     return () => listRef.current?.removeEventListener("scroll", handleScroll);
   }, []);
   return (
-    <>
-      <div
-        ref={listRef}
-        className="d-flex flex-wrap gap-3 m-1 justify-content-between"
-        style={{
-          height: "55vh",
-          overflow: "overlay",
-        }}
-      >
-        {data?.pages?.map((pageData) =>
-          pageData?.map((row, index) => (
-            <InventoryCard
-              key={row.vin! + index}
-              title={row.iYear! + " " + row.make! + " " + row.model!}
-              color={row.color!}
-              vin={row.vin!}
-              imageName={row.imageName}
-              onlineDays={onlineLabel!(row.onlineDays!)}
-              status={row.status}
-              onEdit={() => onEdit!(row)}
-              onDetails={() => onDetails!(row.inventoryId!)}
-            />
-          ))
-        )}
-      </div>
-    </>
+    <div
+      ref={listRef}
+      className="d-flex flex-wrap gap-3 mt-3 p-2 justify-content-sm-center justify-content-lg-between"
+      style={{
+        height: "65vh",
+        scrollBehavior: "auto",
+        overflow: "auto",
+      }}
+    >
+      {data?.pages?.map((pageData) =>
+        pageData?.map((row, index) => (
+          <InventoryCard
+            key={row.vin! + index}
+            title={row.iYear! + " " + row.make! + " " + row.model!}
+            color={row.color!}
+            vin={row.vin!}
+            imageName={row.imageName}
+            onlineDays={onlineLabel!(row.onlineDays!)}
+            status={row.status}
+            onEdit={() => onEdit!(row)}
+            onDetails={() => onDetails!(row.inventoryId!)}
+          />
+        ))
+      )}
+    </div>
   );
 }

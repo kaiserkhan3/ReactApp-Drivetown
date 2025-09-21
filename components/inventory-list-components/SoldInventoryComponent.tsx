@@ -3,7 +3,6 @@ import React, { useEffect, useRef } from "react";
 import { TableBody, TableCell, TableContainer, TableRow } from "@mui/material";
 import moment from "moment";
 import useTable from "../hookComponents/useTable";
-import { useInventory } from "@/hooks/useInventory";
 import ThreeDotLoader from "../loading-control/Three-dots-loader/ThreeDotsLoader";
 import { inventoryProps } from "./new-inventory";
 
@@ -25,6 +24,7 @@ function SoldInventoryComponent({
   fetchNextPage,
   isFetching,
   onEdit,
+  onDetails,
 }: inventoryProps) {
   const tableRef = useRef<HTMLDivElement | null>(null);
 
@@ -32,7 +32,7 @@ function SoldInventoryComponent({
 
   const handleScroll = () => {
     if (
-      tableRef.current?.clientHeight! + tableRef.current?.scrollTop! + 1 >=
+      tableRef.current?.clientHeight! + tableRef.current?.scrollTop! + 2 >=
       tableRef.current?.scrollHeight!
     ) {
       fetchNextPage();
@@ -48,7 +48,7 @@ function SoldInventoryComponent({
     <>
       <TableContainer
         className="shadow-lg px-1 "
-        style={{ height: "55vh" }}
+        style={{ height: "65vh" }}
         ref={tableRef}
       >
         <TblContainer>
@@ -87,7 +87,7 @@ function SoldInventoryComponent({
                   <TableCell>
                     Original Cost: {row.originalCost}
                     <br />
-                    Total Cost: {row.totalCost}
+                    Total Cost: {row.totalOriginalCost}
                     <br />
                     Sale Price: {row.salePrice}
                     <br />
@@ -95,7 +95,11 @@ function SoldInventoryComponent({
                   </TableCell>
                   <TableCell>
                     <div className="d-flex gap-2">
-                      <button type="button" className="btn btn-primary btn-sm">
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        onClick={() => onDetails!(row.inventoryId!)}
+                      >
                         Details
                       </button>
                       <button

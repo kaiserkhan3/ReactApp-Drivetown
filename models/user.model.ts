@@ -5,22 +5,33 @@ export interface IUser {
   user_Id?: string;
   user_Name: string;
 }
+export interface ResponseDto {
+  result: Result;
+  isSuccess: boolean;
+  message: string;
+}
 
-export interface IUserDetails {
-  user_Id: number;
-  user_Name: string;
-  uRole: string;
-  lot_Id: number;
+interface Result {
+  user: User;
+  token: string;
+}
+
+interface User {
+  userId: number;
+  userName: string;
+  upassword: string;
+  urole: string;
+  lotId: number;
   email: string;
   firstName: string;
   lastName: string;
-  eAddress: null;
-  phoneNumber: null;
-  ssNumber: string;
-  salaryType: null;
-  salary: null;
-  createDate: null;
-  updatedDate: string;
+  eaddress: string;
+  phoneNumber: string;
+  ssnumber: string;
+  salaryType: string;
+  salary: number;
+  createDate: Date;
+  updatedDate: Date;
   isActive: boolean;
-  notes: null;
+  notes: string;
 }

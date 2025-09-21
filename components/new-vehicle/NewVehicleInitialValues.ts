@@ -3,7 +3,7 @@ import { Inventory } from "@/models/inventory";
 export const initialValues: Inventory = {
   inventoryId: undefined,
 
-  purchaseDate: new Date("mm/dd/yyyy"),
+  purchaseDate: new Date("YYYY-MM-DD"),
 
   vin: "",
 
@@ -155,7 +155,8 @@ export const initialValues: Inventory = {
   make: "",
   model: "",
   purchaseFrom: "",
-  totalCost: undefined,
+  totalOriginalCost: undefined,
+  totalAddedCost: undefined,
   profit: undefined,
   soldBy: "",
   imageName: "",

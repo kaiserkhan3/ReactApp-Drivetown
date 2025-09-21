@@ -6,6 +6,7 @@ type searchItem = {
   searchText: string | undefined;
   make: string | undefined;
   year: string | undefined;
+  onlineStatus: string | undefined;
   status: string | undefined;
   displayType: displayType;
 };
@@ -14,6 +15,7 @@ const initialState: searchItem = {
   searchText: undefined,
   make: undefined,
   year: undefined,
+  onlineStatus: undefined,
   status: "Available",
   displayType: "grid",
 };
@@ -37,6 +39,9 @@ export const searchSlice = createSlice({
     updateDisplayType(state, action: PayloadAction<displayType>) {
       state.displayType = action.payload;
     },
+    updateOnlineStatus(state, action: PayloadAction<string | undefined>) {
+      state.onlineStatus = action.payload;
+    },
   },
 });
 
@@ -46,4 +51,5 @@ export const {
   updateStatus,
   updateYear,
   updateDisplayType,
+  updateOnlineStatus,
 } = searchSlice.actions;

@@ -8,10 +8,10 @@ export interface AddecCostDto {
   chequeNo?: number | undefined;
   atype?: string | undefined;
   isPaid?: boolean | undefined;
-  addedCostAttachments?: AddedCostImage[];
+  addedCostAttachments?: AddedCostImageDto[];
 }
 
-export interface AddedCostImage {
+export interface AddedCostImageDto {
   addedCostImageId: number;
   addedCostId: number;
   imageName: string;

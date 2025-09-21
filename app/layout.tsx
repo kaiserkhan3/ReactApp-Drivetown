@@ -7,6 +7,8 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { CssBaseline } from "@mui/material";
 import { TanstackProvider } from "@/components/providers/Tanstackprovider";
 import { ToastContainer } from "react-toastify";
+import Provider from "@/components/providers/Provider";
+import { StoreProvider } from "@/components/providers/StoreProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,11 +34,15 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <AppRouterCacheProvider options={{ key: "css" }}>
-          <TanstackProvider>
-            {children}
-            <div id="modal"></div>
-            <ToastContainer />
-          </TanstackProvider>
+          <StoreProvider>
+            <Provider>
+              <TanstackProvider>
+                {children}
+                <div id="modal"></div>
+                <ToastContainer />
+              </TanstackProvider>
+            </Provider>
+          </StoreProvider>
           <BootstapClient />
           <CssBaseline />
         </AppRouterCacheProvider>

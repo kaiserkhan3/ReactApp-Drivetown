@@ -31,7 +31,7 @@ export default function InventoryCard({
   return (
     <div className="card" style={{ width: "15rem" }}>
       <div
-        className="d-flex justify-content-between text-center p-1"
+        className="d-flex flex-grow-1 justify-content-lg-between text-center p-1"
         style={{
           height: "10rem",
           backgroundImage: `url(${imageUrl})`,
@@ -41,7 +41,7 @@ export default function InventoryCard({
         }}
       >
         <span
-          className={`p-1 mt-1 rounded ${status === "Sold" ? "bg-success" : "bg-info"}`}
+          className={`p-1 mt-1 rounded ${status === "Sold" ? "bg-success" : "bg-warning"}`}
           style={{ height: "1.8rem", textAlign: "center" }}
         >
           {status}

@@ -5,11 +5,15 @@ import classes from "./DialogModal.module.css";
 type DialogModalPorps = {
   children: React.ReactNode;
   zIndex?: number;
+  top?: string;
+  minWidth?: string;
 };
 
 export default function DialogModal({
   children,
   zIndex = 1000000,
+  top = "3rem",
+  minWidth,
 }: DialogModalPorps) {
   return createPortal(
     <>
@@ -17,7 +21,13 @@ export default function DialogModal({
       <dialog
         id="modal"
         className={classes.modal}
-        style={{ zIndex: `${zIndex}` }}
+        style={{
+          zIndex: `${zIndex}`,
+          top: `${top}`,
+          scrollBehavior: "smooth",
+          overflow: "auto",
+          minWidth: `${minWidth}`,
+        }}
         open
       >
         {children}

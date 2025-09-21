@@ -5,9 +5,7 @@ import {
   useRepresentative,
   useVehicleMake,
 } from "@/hooks/useInventory";
-import FlexItem from "../control-components/FlexItem";
-import classes from "./new-vehicle.module.css";
-import FlextContainerMB from "../control-components/FlexContainerWithMarginBottom";
+
 import { ChangeEvent, useEffect, useState } from "react";
 import {
   getVinData,
@@ -19,12 +17,18 @@ import { initialValues } from "./NewVehicleInitialValues";
 import { newVehicleSchema } from "@/Schemas";
 import { useStoreDispatch } from "@/app/store/hook";
 import { updateModalCloseState } from "@/app/store/modal-slice";
+import { toast } from "react-toastify";
+import moment from "moment";
+import { useUserData } from "@/hooks/useUserData";
 
 type NewVhicleProps = {
   item?: Inventory;
 };
 
 export default function NewVehicle({ item }: NewVhicleProps) {
+  const { userId } = useUserData();
+  const { purchaseFrom, announcement, buyers } = useRepresentative();
+
   const {
     values,
     setValues,
@@ -34,16 +38,18 @@ export default function NewVehicle({ item }: NewVhicleProps) {
     errors,
     touched,
   } = useFormik<Inventory>({
-    initialValues,
+    initialValues: Object.assign(initialValues, {
+      buyerId: buyers?.[0].representativeId,
+    }),
     validationSchema: newVehicleSchema,
     onSubmit: (values, actions) => onSubmit(values, actions),
   });
 
   const [modalsList, setModalsList] = useState<VehicleModel[]>([]);
-  const { purchaseFrom, announcement, buyers } = useRepresentative();
+
   const { keyNo, refetch } = usePossibleKey();
   const { makeList } = useVehicleMake();
-  const { upsertInventory } = useInventoryCUD();
+  const { upsertInventory, isSuccess, data } = useInventoryCUD();
 
   const dispatch = useStoreDispatch();
 
@@ -79,7 +85,6 @@ export default function NewVehicle({ item }: NewVhicleProps) {
   ));
 
   const vinChangeHandler = async (e: ChangeEvent<HTMLInputElement>) => {
-    handleChange(e);
     if (e.target.value.length > 6) {
       const data = await getVinData(e.target.value);
       if (data) {
@@ -91,6 +96,7 @@ export default function NewVehicle({ item }: NewVhicleProps) {
         }));
       }
     }
+    handleChange(e);
   };
 
   const makeChangeHandler = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -103,10 +109,35 @@ export default function NewVehicle({ item }: NewVhicleProps) {
     }
   };
 
-  const onSubmit = (values: Inventory, actions: FormikHelpers<Inventory>) => {
-    //actions.resetForm();
-    upsertInventory(values);
+  const costControlsChaneHandler = (
+    event: ChangeEvent<HTMLInputElement>,
+    controlName: string
+  ) => {
+    const value =
+      event.target.value === "" ? undefined : parseInt(event.target.value);
+    setValues((prevState) => {
+      return { ...prevState, [controlName]: value };
+    });
   };
+
+  const onSubmit = async (
+    values: Inventory,
+    actions: FormikHelpers<Inventory>
+  ) => {
+    //actions.resetForm();
+    values.buyerId = values.buyerId ?? buyers?.[0].representativeId;
+    if (values.inventoryId) {
+      values.updatedById = userId;
+    } else {
+      values.createdById = userId;
+    }
+
+    upsertInventory(values);
+    if (isSuccess) {
+      toast.success(data?.message);
+    }
+  };
+
   useEffect(() => {
     if (item) {
       setValues(item);
@@ -117,292 +148,260 @@ export default function NewVehicle({ item }: NewVhicleProps) {
 
   return (
     <>
+      {isSuccess && (
+        <div className="alert alert-success" role="alert">
+          {data?.message}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div
-          className={classes.flexContainer}
-          style={{ textTransform: "uppercase" }}
+          className="row g-3 m-3 p-3 shadow-lg"
+          style={{
+            width: "90vw",
+            minHeight: "60vh",
+            textTransform: "uppercase",
+            backgroundColor: "hsl(0, 0%, 96%)",
+          }}
         >
-          <div
-            className={`${classes.flexItem} ${classes.color} ${classes.spacing}`}
-          >
-            <div className="pt-2 ps-2">
-              <div className="form-floating">
+          <div className="col-6">
+            <div className="row g-2">
+              <div className="col-12 form-floating pe-3">
                 <input
                   type="text"
                   className="form-control"
                   id="vin"
                   name="vin"
-                  value={values?.vin}
+                  defaultValue={values?.vin}
                   onChange={vinChangeHandler}
                   placeholder="Enter a Vin"
                 />
                 <label htmlFor="vin">VIN</label>
+                {errors?.vin && touched.vin && (
+                  <p className="text-danger">{errors.vin}</p>
+                )}
               </div>
-              {errors?.vin && touched.vin && (
-                <p className="text-danger">{errors.vin}</p>
-              )}
-            </div>
-            <div className={`pt-1 ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className={`form-floating `}>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="make"
-                    name="make"
-                    list="make-list"
-                    placeholder="Enter a make"
-                    value={values?.make || ""}
-                    onChange={makeChangeHandler}
-                    onBlur={handleBlur}
-                  />
-                  <datalist id="make-list">{vehicleMakes}</datalist>
-                  <label htmlFor="make">MAKE</label>
-                </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="make"
+                  name="make"
+                  list="make-list"
+                  placeholder="Enter a make"
+                  value={values?.make || ""}
+                  onChange={makeChangeHandler}
+                  onBlur={handleBlur}
+                />
+                <datalist id="make-list">{vehicleMakes}</datalist>
+                <label htmlFor="make">MAKE</label>
                 {errors?.make && touched.make && (
                   <p className="text-danger">{errors.make}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
-                <div className={`form-floating`}>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="model"
-                    name="model"
-                    list="modal-list"
-                    value={values?.model || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Enter a model"
-                  />
-                  <datalist id="modal-list">
-                    {modalsList?.map((m, index) => (
-                      <option
-                        key={m.vehicleModelName + index}
-                        value={m.vehicleModelName}
-                      />
-                    ))}
-                  </datalist>
-                  <label htmlFor="model">MODEL</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="model"
+                  name="model"
+                  list="modal-list"
+                  value={values?.model || ""}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter a model"
+                />
+                <datalist id="modal-list">
+                  {modalsList?.map((m, index) => (
+                    <option
+                      key={m.vehicleModelName + index}
+                      value={m.vehicleModelName}
+                    />
+                  ))}
+                </datalist>
+                <label htmlFor="model">MODEL</label>
                 {errors?.model && touched.model && (
                   <p className="text-danger">{errors.model}</p>
                 )}
-              </FlexItem>
-            </div>
-            <div className={`ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className={`form-floating`}>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="iYear"
-                    name="iYear"
-                    value={values?.iYear! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Enter a year"
-                  />
-                  <label htmlFor="iYear">YEAR</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="iYear"
+                  name="iYear"
+                  value={values?.iYear! || ""}
+                  onChange={(e) => costControlsChaneHandler(e, "iYear")}
+                  onBlur={handleBlur}
+                  placeholder="Enter a year"
+                />
+                <label htmlFor="iYear">YEAR</label>
                 {errors?.iYear && touched.iYear && (
                   <p className="text-danger">{errors.iYear}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
-                <div className={`form-floating`}>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="color"
-                    name="color"
-                    value={values?.color! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Enter a color"
-                  />
-                  <label htmlFor="color">COLOR</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="color"
+                  name="color"
+                  defaultValue={values?.color! || undefined}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter a color"
+                />
+                <label htmlFor="color">COLOR</label>
                 {errors?.color && touched.color && (
                   <p className="text-danger">{errors.color}</p>
                 )}
-              </FlexItem>
-            </div>
-            <div className={`ps-2 mb-2  ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className={`form-floating`}>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="keyNo"
-                    name="keyNo"
-                    value={values?.keyNo! || keyNo || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Enter a year"
-                  />
-                  <label htmlFor="keyNo">KEY NUMBER</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="keyNo"
+                  name="keyNo"
+                  defaultValue={values?.keyNo! || keyNo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter a year"
+                />
+                <label htmlFor="keyNo">KEY NUMBER</label>
                 {errors?.keyNo && touched.keyNo && (
                   <p className="text-danger">{errors.keyNo}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
-                <div className={`form-floating`}>
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="numberOfKeys"
-                    name="numberOfKeys"
-                    value={values?.numberOfKeys! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Enter a color"
-                  />
-                  <label htmlFor="numberOfKeys">NUMBER OF KEYS</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="text"
+                  className="form-control"
+                  id="numberOfKeys"
+                  name="numberOfKeys"
+                  defaultValue={values?.numberOfKeys! || undefined}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Enter a color"
+                />
+                <label htmlFor="numberOfKeys">NUMBER OF KEYS</label>
                 {errors?.numberOfKeys && touched.numberOfKeys && (
                   <p className="text-danger">{errors.numberOfKeys}</p>
                 )}
-              </FlexItem>
-            </div>
-            <div className={`ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className="form-floating">
-                  <input
-                    type="date"
-                    className="form-control"
-                    id="purchaseDate"
-                    name="purchaseDate"
-                    value={values?.purchaseDate!.toString()}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Select purchase date"
-                  />
-                  <label htmlFor="purchaseDate">PURCHASE DATE</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="date"
+                  className="form-control"
+                  id="purchaseDate"
+                  name="purchaseDate"
+                  value={
+                    moment(values?.purchaseDate).format("YYYY-MM-DD") ||
+                    undefined
+                  }
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  placeholder="Select purchase date"
+                />
+                <label htmlFor="purchaseDate">PURCHASE DATE</label>
                 {errors?.purchaseDate && touched.purchaseDate && (
                   <p className="text-danger">{errors.purchaseDate}</p>
                 )}
-              </FlexItem>
-            </div>
-            <div className={` ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className="form-floating">
-                  <select
-                    className="form-select"
-                    id="purchaseFromId"
-                    name="purchaseFromId"
-                    aria-label="Floating label select example"
-                    value={values?.purchaseFrom! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  >
-                    <option key="selected" value="">
-                      Select purchase from
-                    </option>
-                    {purchaseFromData}
-                  </select>
-                  <label htmlFor="purchaseFromId">PURCHASE FROM</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <select
+                  className="form-select"
+                  id="purchaseFromId"
+                  name="purchaseFromId"
+                  aria-label="Floating label select example"
+                  defaultValue={values?.purchaseFrom! || undefined}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                >
+                  <option key="selected" value="">
+                    Select purchase from
+                  </option>
+                  {purchaseFromData}
+                </select>
+                <label htmlFor="purchaseFromId">PURCHASE FROM</label>
                 {errors?.purchaseFromId && touched.purchaseFrom && (
                   <p className="text-danger">{errors.purchaseFromId}</p>
                 )}
-              </FlexItem>
-            </div>
-            <div className={` ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className="form-floating">
-                  <input
-                    type="number"
-                    className="form-control"
-                    id="originalCost"
-                    name="originalCost"
-                    placeholder="Enter a original cost"
-                    value={values?.originalCost! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <label htmlFor="originalCost">ORIGINAL COST</label>
-                </div>
-                {errors?.originalCost && touched.originalCost && (
-                  <p className="text-danger">{errors.originalCost}</p>
-                )}
-              </FlexItem>
-            </div>
-            <div className={` ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className="form-floating ">
-                  <input
-                    type="number"
-                    className="form-control"
-                    id="floorCost"
-                    name="floorCost"
-                    value={values?.floorCost! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    placeholder="Enter a floor cost"
-                  />
-                  <label htmlFor="floorCost">FLOOR COST</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="number"
+                  className="form-control"
+                  id="floorCost"
+                  name="floorCost"
+                  defaultValue={
+                    values?.floorCost! || typeof values.floorCost === "string"
+                      ? undefined
+                      : values.floorCost
+                  }
+                  onChange={(e) => costControlsChaneHandler(e, "floorCost")}
+                  onBlur={handleBlur}
+                  placeholder="Enter a floor cost"
+                />
+                <label htmlFor="floorCost">FLOOR COST</label>
                 {errors?.floorCost && touched.floorCost && (
                   <p className="text-danger">{errors.floorCost}</p>
                 )}
-              </FlexItem>
-            </div>
-            <div className={` ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className="form-floating">
-                  <select
-                    className="form-select"
-                    id="buyerId"
-                    name="buyerId"
-                    value={values?.buyerId! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    aria-label="Floating label select example"
-                  >
-                    <option key="selectBuyer" value="">
-                      Select buyer
-                    </option>
-                    {buyersData}
-                  </select>
-                  <label htmlFor="buyerId">SELECT BUYER</label>
-                </div>
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <input
+                  type="number"
+                  className="form-control"
+                  id="originalCost"
+                  name="originalCost"
+                  placeholder="Enter a original cost"
+                  defaultValue={values?.originalCost! || undefined}
+                  onChange={(e) => costControlsChaneHandler(e, "originalCost")}
+                  onBlur={handleBlur}
+                />
+                <label htmlFor="originalCost">ORIGINAL COST</label>
+                {errors?.originalCost && touched.originalCost && (
+                  <p className="text-danger">{errors.originalCost}</p>
+                )}
+              </div>
+              <div className="col-6 form-floating pe-3">
+                <select
+                  className="form-select"
+                  id="buyerId"
+                  name="buyerId"
+                  defaultValue={values?.buyerId! || undefined}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  aria-label="Floating label select example"
+                >
+                  {buyersData}
+                </select>
+                <label htmlFor="buyerId">SELECT BUYER</label>
                 {errors?.buyerId && touched.buyerId && (
                   <p className="text-danger">{errors.buyerId}</p>
                 )}
-              </FlexItem>
-            </div>
-            <div className={` ps-2 mb-2 ${classes.flexContainer}`}>
-              <FlexItem>
-                <div className="form-floating">
-                  <select
-                    className="form-select"
-                    id="announcement"
-                    name="announcement"
-                    aria-label="Floating label select example"
-                    value={values?.announcement! || ""}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  >
-                    <option value="">Select a announcement</option>
-                    {announcementData}
-                  </select>
-                  <label htmlFor="announcement">ANNOUNCEMENT</label>
-                </div>
+              </div>
+              <div className="col-12 form-floating pe-3">
+                <select
+                  className="form-select"
+                  id="announcement"
+                  name="announcement"
+                  aria-label="Floating label select example"
+                  defaultValue={values?.announcement! || undefined}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                >
+                  <option value="">Select a announcement</option>
+                  {announcementData}
+                </select>
+                <label htmlFor="announcement">ANNOUNCEMENT</label>
                 {errors?.announcement && touched.announcement && (
                   <p className="text-danger">{errors.announcement}</p>
                 )}
-              </FlexItem>
+              </div>
             </div>
           </div>
-          <div
-            className={`${classes.flexItem} ${classes.color} ${classes.spacing}`}
-          >
-            <FlextContainerMB>
-              <FlexItem>
+          <div className="col-6">
+            <div className="row g-2">
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="batteryGood">
                   BATTERY
                 </label>
@@ -441,8 +440,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.battery && touched.battery && (
                   <p className="text-danger">{errors.battery}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="checkEngineLightOff">
                   CHECK ENGINE LIGHT
                 </label>
@@ -487,10 +486,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.checkEngineLight && touched.checkEngineLight && (
                   <p className="text-danger">{errors.checkEngineLight}</p>
                 )}
-              </FlexItem>
-            </FlextContainerMB>
-            <FlextContainerMB>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="acGood">
                   A/C
                 </label>
@@ -529,8 +526,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.ac && touched.ac && (
                   <p className="text-danger">{errors.ac}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="windowsAllWork">
                   WINDOWS
                 </label>
@@ -575,10 +572,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.windows && touched.windows && (
                   <p className="text-danger">{errors.windows}</p>
                 )}
-              </FlexItem>
-            </FlextContainerMB>
-            <FlextContainerMB>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="tireLightOff">
                   Tire light
                 </label>
@@ -620,8 +615,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.tireLight && touched.tireLight && (
                   <p className="text-danger">{errors.tireLight}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="radioGood">
                   Radio
                 </label>
@@ -660,10 +655,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.radio && touched.radio && (
                   <p className="text-danger">{errors.radio}</p>
                 )}
-              </FlexItem>
-            </FlextContainerMB>
-            <FlextContainerMB>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="windsheildGood">
                   Windshield
                 </label>
@@ -720,8 +713,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.radio && touched.radio && (
                   <p className="text-danger">{errors.radio}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="sunroofwf">
                   Sunroof
                 </label>
@@ -775,10 +768,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.sunroof && touched.sunroof && (
                   <p className="text-danger">{errors.sunroof}</p>
                 )}
-              </FlexItem>
-            </FlextContainerMB>
-            <FlextContainerMB>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="upholstreyAG">
                   Upholstery
                 </label>
@@ -832,8 +823,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.upholstrey && touched.upholstrey && (
                   <p className="text-danger">{errors.upholstrey}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="cleanlinessC">
                   Cleanliness
                 </label>
@@ -872,10 +863,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.cleanliness && touched.cleanliness && (
                   <p className="text-danger">{errors.cleanliness}</p>
                 )}
-              </FlexItem>
-            </FlextContainerMB>
-            <FlextContainerMB>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="bodyWorkYes">
                   Body work
                 </label>
@@ -914,8 +903,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.bodyWork && touched.bodyWork && (
                   <p className="text-danger">{errors.bodyWork}</p>
                 )}
-              </FlexItem>
-              <FlexItem>
+              </div>
+              <div className="col-6 pe-3">
                 <label className="form-label" htmlFor="othersYes">
                   Others
                 </label>
@@ -954,10 +943,8 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.others && touched.others && (
                   <p className="text-danger">{errors.others}</p>
                 )}
-              </FlexItem>
-            </FlextContainerMB>
-            <FlextContainerMB>
-              <FlexItem>
+              </div>
+              <div className="col-12 pe-3">
                 <div className="form-floating p-2 mt-4">
                   <input
                     type="text"
@@ -976,25 +963,29 @@ export default function NewVehicle({ item }: NewVhicleProps) {
                 {errors?.amythingMike && (
                   <p className="text-danger">{errors.amythingMike}</p>
                 )}
-              </FlexItem>
-            </FlextContainerMB>
-            <FlextContainerMB>
-              <button
-                type="button"
-                onClick={() =>
-                  dispatch(updateModalCloseState({ modalVisible: false }))
-                }
-                className="btn btn-secondary"
-              >
-                Close
-              </button>
-              <button type="button" className="btn btn-info">
-                Upload
-              </button>
-              <button type="submit" className="ms-auto btn btn-primary">
-                Save
-              </button>
-            </FlextContainerMB>
+              </div>
+              <div className="row g-3 pe-3">
+                <div className="col-6 ps-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      dispatch(updateModalCloseState({ modalVisible: false }))
+                    }
+                    className="btn btn-outline-danger btn-hover me-2"
+                  >
+                    Close
+                  </button>
+                  <button type="button" className="btn btn-info ">
+                    Upload
+                  </button>
+                </div>
+                <div className="col-6 text-end pe-3">
+                  <button type="submit" className="ms-auto btn btn-primary">
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </form>

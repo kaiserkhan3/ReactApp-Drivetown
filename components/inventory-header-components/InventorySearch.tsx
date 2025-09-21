@@ -10,8 +10,6 @@ import {
 import { useVehicleMake } from "@/hooks/useInventory";
 import { ChangeEvent } from "react";
 import { IoSearchOutline } from "react-icons/io5";
-import { MdGridView } from "react-icons/md";
-import { IoIosList } from "react-icons/io";
 
 export default function InventorySearch() {
   // Tankstack hooks
@@ -39,7 +37,7 @@ export default function InventorySearch() {
       dispatch(updateSearchText(undefined));
     }
   };
-  const makeChnageHandler = (event: ChangeEvent<HTMLSelectElement>) => {
+  const makeChnageHandler = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     if (value === "all") {
       dispatch(updateMake(undefined));
@@ -48,7 +46,7 @@ export default function InventorySearch() {
     }
   };
 
-  const yearCheangeHandler = (event: ChangeEvent<HTMLSelectElement>) => {
+  const yearCheangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
     if (value === "all") {
       dispatch(updateYear(undefined));
@@ -58,13 +56,13 @@ export default function InventorySearch() {
   };
 
   return (
-    <div className="container-fluid mb-4 shadow-lg p-3 rounded">
+    <div className="p-3 mb-3 shadow-lg rounded-3">
       <div className="row row-cols-1 row-cols-lg-4">
         <div className="col">
           <label className="form-label" htmlFor="search">
             Search
           </label>
-          <div className="input-group mb-3">
+          <div className="input-group ">
             <span className="input-group-text" id="basic-addon1">
               <IoSearchOutline />
             </span>
@@ -81,56 +79,51 @@ export default function InventorySearch() {
           </div>
         </div>
         <div className="col">
-          <label className="form-label" htmlFor="make">
+          <label className="form-label" htmlFor="makes">
             Make
           </label>
-          <select
-            className="form-select"
-            name="make"
-            id="make"
-            aria-label="Default select example"
-            defaultValue="all"
+          <input
+            type="text"
+            className="form-control"
+            id="makes"
+            name="makes"
+            list="make-list"
+            placeholder="Enter a make"
             onChange={makeChnageHandler}
-          >
-            <option key="allMakes" value="all">
-              All Makes
-            </option>
+          />
+          <datalist id="make-list">
             {makeList?.map((make) => (
-              <option key={make.vehicleMakeId} value={make.vehicleMakeName}>
-                {make.vehicleMakeName}
-              </option>
+              <option key={make.vehicleMakeId} value={make.vehicleMakeName} />
             ))}
-          </select>
+          </datalist>
         </div>
         <div className="col">
           <label className="form-label" htmlFor="year">
             Year
           </label>
-          <select
-            className="form-select"
-            name="year"
+          <input
+            type="text"
+            className="form-control"
             id="year"
-            aria-label="Default select example"
+            name="year"
+            list="year-list"
+            placeholder="Enter a year"
             onChange={yearCheangeHandler}
-          >
-            <option key="allYears" value="all">
-              All Years
-            </option>
+          />
+          <datalist id="year-list">
             {range(1900, new Date().getFullYear())?.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
+              <option key={year} value={year} />
             ))}
-          </select>
+          </datalist>
         </div>
         <div className="col">
-          <label className="form-label" htmlFor="make">
+          <label className="form-label" htmlFor="status">
             Status
           </label>
           <select
             className="form-select"
-            name="make"
-            id="make"
+            name="status"
+            id="status"
             aria-label="Default select example"
             defaultValue={defaultStatus}
             onChange={statusChangeHandler}
@@ -150,12 +143,7 @@ export default function InventorySearch() {
           </select>
         </div>
       </div>
-      <div className="d-flex pt-1 ">
-        <div>
-          <button type="button" className="btn btn-primary">
-            Apply Filters
-          </button>
-        </div>
+      <div className="d-flex">
         <div
           className="ms-auto btn-group"
           role="group"
@@ -166,14 +154,14 @@ export default function InventorySearch() {
             onClick={() => dispatch(updateDisplayType("list"))}
             className={`btn ${displayType === "list" ? "btn-primary" : "btn-outline-primary"} `}
           >
-            <MdGridView /> List
+            <i className="bi bi-list-ul"></i> List
           </button>
           <button
             type="button"
             onClick={() => dispatch(updateDisplayType("grid"))}
             className={`btn ${displayType === "grid" ? "btn-primary" : "btn-outline-primary"} `}
           >
-            <IoIosList /> Grid
+            <i className="bi bi-grid"></i> Grid
           </button>
         </div>
       </div>

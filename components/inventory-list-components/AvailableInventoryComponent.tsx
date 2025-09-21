@@ -23,6 +23,7 @@ function AvailableInventoryComponent({
   fetchNextPage,
   isFetching,
   onEdit,
+  onDetails,
 }: inventoryProps) {
   const tableRef = useRef<HTMLDivElement | null>(null);
 
@@ -30,7 +31,7 @@ function AvailableInventoryComponent({
 
   const handleScroll = () => {
     if (
-      tableRef.current?.clientHeight! + tableRef.current?.scrollTop! + 1 >=
+      tableRef.current?.clientHeight! + tableRef.current?.scrollTop! + 2 >=
       tableRef.current?.scrollHeight!
     ) {
       fetchNextPage();
@@ -67,7 +68,7 @@ function AvailableInventoryComponent({
       <TableContainer
         className="shadow-lg px-1 "
         ref={tableRef}
-        style={{ height: "55vh" }}
+        style={{ height: "65vh" }}
       >
         <TblContainer>
           <TblHead />
@@ -110,7 +111,11 @@ function AvailableInventoryComponent({
                   </TableCell>
                   <TableCell>
                     <div className="d-flex gap-2">
-                      <button type="button" className="btn btn-primary btn-sm">
+                      <button
+                        type="button"
+                        className="btn btn-primary btn-sm"
+                        onClick={() => onDetails!(row.inventoryId!)}
+                      >
                         Details
                       </button>
                       <button

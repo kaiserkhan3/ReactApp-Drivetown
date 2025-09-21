@@ -1,8 +1,5 @@
-import { AddedCostDetails } from "@/components/inventory-details/AddedCostDetails";
-import InventoryDetails from "@/components/inventory-details/InventoryDetails";
+import { Login } from "@/components/Login/Login";
 
 export default function Home() {
-  // return <InventoryDetails inventoryId={4462} />;
-
-  return <AddedCostDetails />;
+  return <Login />;
 }

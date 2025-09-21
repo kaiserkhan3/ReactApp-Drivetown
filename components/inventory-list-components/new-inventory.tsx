@@ -11,10 +11,14 @@ import { Inventory } from "@/models/inventory";
 import InventoryCardList from "./Inventory-card-list";
 import ThreeDotLoader from "../loading-control/Three-dots-loader/ThreeDotsLoader";
 import DialogModal from "../control-components/DialogModal";
-import NewVehicle from "../new-vehicle/NewVehicle";
-import { useState } from "react";
-import { updateModalCloseState } from "@/app/store/modal-slice";
+import { Suspense, useState } from "react";
+import {
+  updateIsDetailViewFlag,
+  updateModalCloseState,
+} from "@/app/store/modal-slice";
 import InventoryDetails from "../inventory-details/InventoryDetails";
+import { useUserData } from "@/hooks/useUserData";
+import AddEditVehicle from "../new-vehicle/add-edit-vehicle";
 
 export type inventoryProps = {
   data: InfiniteData<Inventory[], unknown> | undefined;
@@ -32,27 +36,33 @@ export default function NewInventory() {
   const searchText = useStoreSelector((state) => state.search.searchText);
   const modalVisible = useStoreSelector((state) => state.modal.modalVisible);
   const displayType = useStoreSelector((state) => state.search.displayType);
+  const isDetailsView = useStoreSelector((state) => state.modal.isDetailsView);
+  const onlineStatus = useStoreSelector((state) => state.search.onlineStatus);
 
   const dispatch = useStoreDispatch();
+
+  const { userId, userName, role } = useUserData();
 
   const { data, fetchNextPage, isFetching } = useInventory(
     status,
     make,
     year,
-    searchText
+    searchText,
+    onlineStatus
   );
   const [item, setItem] = useState<Inventory | number | undefined>();
-  const [isDetailsView, setIsDetailsView] = useState<boolean>(false);
 
   const onEditHandler = (item: Inventory) => {
     dispatch(updateModalCloseState({ modalVisible: true }));
-    setIsDetailsView(false);
+    dispatch(updateIsDetailViewFlag({ isDetailsView: false }));
     setItem(item);
   };
 
+  const setItemUndefined = () => setItem(undefined);
+
   const onDetailsHandler = (inventoryId: number) => {
     dispatch(updateModalCloseState({ modalVisible: true }));
-    setIsDetailsView(true);
+    dispatch(updateIsDetailViewFlag({ isDetailsView: true }));
     setItem(inventoryId);
   };
 
@@ -67,67 +77,63 @@ export default function NewInventory() {
       case parseInt(onlineDays) <= 30:
         return { text: `Online (${onlineDays})`, bgColor: "green" };
       case parseInt(onlineDays) > 30 && parseInt(onlineDays) <= 60:
-        return { text: `Online (${onlineDays})`, bgColor: "orange" };
+        return { text: `Online (${onlineDays})`, bgColor: "darkblue" };
       case parseInt(onlineDays) > 60:
-        return { text: `Online (${onlineDays})`, bgColor: "red" };
+        return { text: `Online (${onlineDays})`, bgColor: "darkblue" };
       default:
-        return { text: `${onlineDays}`, bgColor: "lightblue" };
+        return { text: `${onlineDays}`, bgColor: "darkblue" };
     }
   };
 
   return (
     <>
       {modalVisible && (
-        <DialogModal>
+        <DialogModal top={"1rem"}>
           {isDetailsView ? (
             <InventoryDetails inventoryId={item as number} />
           ) : (
-            <NewVehicle item={item! as Inventory} />
-          )}
-          <button
-            className="btn btn-outlined-secondary"
-            onClick={() =>
-              dispatch(updateModalCloseState({ modalVisible: false }))
-            }
-          >
-            Close
-          </button>
-        </DialogModal>
-      )}
-      <div className="p-3 shadow-lg" style={{ height: "100vh" }}>
-        <InventorySearch />
-        <InventoryHeader />
-        {status === "Available" && displayType === "list" && (
-          <AvailableInventoryComponent
-            data={data}
-            fetchNextPage={fetchNextPage}
-            isFetching={isFetching}
-            onEdit={onEditHandler}
-            onDetails={onDetailsHandler}
-          />
-        )}
-        {(status === "Sold" || status === "Archive") &&
-          displayType === "list" && (
-            <SoldInventoryComponent
-              data={data}
-              fetchNextPage={fetchNextPage}
-              isFetching={isFetching}
-              onEdit={onEditHandler}
-              onDetails={onDetailsHandler}
+            <AddEditVehicle
+              item={item! as Inventory}
+              setItemUndefined={setItemUndefined}
             />
           )}
-        {displayType === "grid" && (
-          <InventoryCardList
+        </DialogModal>
+      )}
+
+      {/* <div className="container-fluid p-3 shadow-lg"> */}
+      <InventorySearch />
+      <InventoryHeader />
+      {status === "Available" && displayType === "list" && (
+        <AvailableInventoryComponent
+          data={data}
+          fetchNextPage={fetchNextPage}
+          isFetching={isFetching}
+          onEdit={onEditHandler}
+          onDetails={onDetailsHandler}
+        />
+      )}
+      {(status === "Sold" || status === "Archive") &&
+        displayType === "list" && (
+          <SoldInventoryComponent
             data={data}
             fetchNextPage={fetchNextPage}
             isFetching={isFetching}
             onEdit={onEditHandler}
-            onlineLabel={configureOnlineLabel}
             onDetails={onDetailsHandler}
           />
         )}
-        {isFetching && <ThreeDotLoader />}
-      </div>
+      {displayType === "grid" && (
+        <InventoryCardList
+          data={data}
+          fetchNextPage={fetchNextPage}
+          isFetching={isFetching}
+          onEdit={onEditHandler}
+          onlineLabel={configureOnlineLabel}
+          onDetails={onDetailsHandler}
+        />
+      )}
+      {isFetching && <ThreeDotLoader />}
+      {/* </div> */}
     </>
   );
 }

@@ -1,9 +1,6 @@
 "use client";
-import {
-  useGetAdedCostDataById,
-  useRepresentative,
-} from "@/hooks/useInventory";
-import { AddecCostDto, Representative } from "@/models/inventory";
+import { useGetAdedCostDataById } from "@/hooks/useInventory";
+import { AddecCostDto, RepresentativeDto } from "@/models/inventory";
 import { addedCostSchema } from "@/Schemas";
 import { FormikHelpers, useFormik } from "formik";
 import { ChangeEvent, useState } from "react";
@@ -13,14 +10,16 @@ import { useStoreDispatch } from "@/app/store/hook";
 import { updateAddedCostModalCloseState } from "@/app/store/modal-slice";
 import moment from "moment";
 import { MdDeleteForever } from "react-icons/md";
-import { useAddedCostCUD } from "@/hooks/useAddedCost";
+import { useAddedCostCUD, useDeleteAddedCostImage } from "@/hooks/useAddedCost";
 import { MdBrowserUpdated } from "react-icons/md";
 import { FaRegSave } from "react-icons/fa";
 import { IoCloseCircleSharp } from "react-icons/io5";
-import { AddedCostImage } from "@/models/inventory/addedcost.model";
+import { AddedCostImageDto } from "@/models/inventory/addedcost.model";
+import { useUserData } from "@/hooks/useUserData";
 
 type AddedCostDetailsProps = {
   inventoryId?: number;
+  contractors: RepresentativeDto[];
 };
 
 const initialStateValues: AddecCostDto = {
@@ -36,17 +35,18 @@ const initialStateValues: AddecCostDto = {
   addedCostAttachments: [],
 };
 
-export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
-  const { addedCostData, error, isFetching } = useGetAdedCostDataById(
-    inventoryId!
-  );
+export const AddedCostDetails = ({
+  inventoryId,
+  contractors,
+}: AddedCostDetailsProps) => {
+  const { userId } = useUserData();
+  const { addedCostData } = useGetAdedCostDataById(inventoryId!);
 
   const { upsertAddedCostCUD, data } = useAddedCostCUD();
   const [files, setFiles] = useState<File[]>([]);
 
   const dispatch = useStoreDispatch();
-  const { contractors } = useRepresentative();
-
+  const { deleteAddedCostImage } = useDeleteAddedCostImage();
   const {
     values,
     setValues,
@@ -100,7 +100,7 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
     }
   };
 
-  const viewImage = (item: AddedCostImage) => {
+  const viewImage = (item: AddedCostImageDto) => {
     window.open(
       process.env.NEXT_PUBLIC_ADDEDCOST_FILE_BASE_URL + item.imageName,
       "_blank"
@@ -127,10 +127,22 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
     setValues(row);
   };
   const onDeleteRowHandler = (row: AddecCostDto) => {
-    console.log("row", row);
     const formData = new FormData();
     formData.append("addedCostDto", JSON.stringify(row));
     const response = upsertAddedCostCUD({ formData: formData, operation: "d" });
+  };
+
+  const contractChangeHandler = (event: ChangeEvent<HTMLSelectElement>) => {
+    const value = contractors.find(
+      (i) => i.representativeId === parseInt(event.target.value)
+    );
+    setValues((prevState) => {
+      return {
+        ...prevState,
+        contractorId: parseInt(event.target.value),
+        description: value?.representativeFirstName,
+      };
+    });
   };
 
   const submitHandler = (
@@ -144,7 +156,6 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
     formData.append("addedCostDto", JSON.stringify(values));
     const operation = values.addedCostId ? "u" : "i";
     const response = upsertAddedCostCUD({ formData, operation });
-    console.log("response ", response);
     toast.success("Changes are updated successfully!!");
   };
 
@@ -152,31 +163,30 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
     <>
       <div className="d-flex flex-column p-2 gap-3 align-items-center">
         <form onSubmit={handleSubmit}>
-          <div
-            className="d-flex w-full flex-column gap-3 align-content-center"
-            style={{ width: "28rem" }}
-          >
-            <div className="form-floating">
+          <div className="row g-3" style={{ width: "28rem" }}>
+            <div className="col-md-6">
+              <label htmlFor="contractorId">Payment Details</label>
               <select
                 className="form-select"
                 id="contractorId"
                 name="contractorId"
                 aria-label="Floating label select example"
-                value={values.contractorId || ""}
-                onChange={handleChange}
+                defaultValue={values?.contractorId}
+                onChange={contractChangeHandler}
                 onBlur={handleBlur}
               >
-                <option key="selectBuyer" value="">
-                  Select Contractor
+                <option key="selectContractor" value="">
+                  Select
                 </option>
                 {contractorsData}
               </select>
-              <label htmlFor="contractorId">Constractor</label>
+
               {errors?.contractorId && touched.contractorId && (
                 <p className="text-danger">{errors.contractorId}</p>
               )}
             </div>
-            <div className="form-floating">
+            <div className="col-md-6">
+              <label htmlFor="adate">Paid Date</label>
               <input
                 type="date"
                 className="form-control"
@@ -187,9 +197,9 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
                 onChange={handleChange}
                 onBlur={handleBlur}
               />
-              <label htmlFor="adate">Paid Date</label>
             </div>
-            <div className="form-floating">
+            <div className="col-md-6">
+              <label htmlFor="atype">Paid Type</label>
               <select
                 className="form-select"
                 id="atype"
@@ -208,41 +218,30 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
                 <option key="Cheque" value="Cheque">
                   Cheque
                 </option>
+                <option key="CreditCard" value="Credit Card">
+                  Credit Card
+                </option>
               </select>
-              <label htmlFor="atype">Paid Type</label>
             </div>
-            <div className="d-flex justify-content-between align-items-center gap-3">
-              <div className={`form-floating`}>
-                <input
-                  type="text"
-                  className="form-control"
-                  id="price"
-                  name="price"
-                  placeholder="Enter Amount"
-                  defaultValue={values.price}
-                  onChange={priceChangeHandler}
-                  onBlur={handleBlur}
-                />
-                <label htmlFor="price">Cost</label>
-                {errors?.price && touched.price && (
-                  <p className="text-danger">{errors.price}</p>
-                )}
-              </div>
-              <div className="form-check form-switch text-center">
-                <label htmlFor="isPaid">IsPaid</label>
-                <input
-                  className="form-check-input"
-                  type="checkbox"
-                  id="isPaid"
-                  name="isPaid"
-                  checked={values.isPaid === true}
-                  value={values.isPaid ? 1 : 0}
-                  onChange={switchHandler}
-                  onBlur={handleBlur}
-                />
-              </div>
+            <div className="col-md-6">
+              <label htmlFor="price">Cost</label>
+              <input
+                type="text"
+                className="form-control"
+                id="price"
+                name="price"
+                placeholder="Enter Cost"
+                defaultValue={values.price}
+                onChange={priceChangeHandler}
+                onBlur={handleBlur}
+              />
+              {errors?.price && touched.price && (
+                <p className="text-danger">{errors.price}</p>
+              )}
             </div>
-            <div className={`form-floating`}>
+
+            <div>
+              <label htmlFor="description">Comments</label>
               <input
                 type="text"
                 className="form-control"
@@ -253,7 +252,6 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
                 onChange={handleChange}
                 onBlur={handleBlur}
               />
-              <label htmlFor="description">Comments</label>
             </div>
             <div className="mb-2">
               <label htmlFor="formFile" className="form-label">
@@ -271,8 +269,9 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
               <>
                 {files?.map((file) => (
                   <span key={file.name} style={{ color: "blue" }}>
-                    {file.name}{" "}
+                    {file.name}
                     <MdDeleteForever
+                      size="20px"
                       color="red"
                       onClick={() => removeFileFromState(file)}
                     />
@@ -280,17 +279,21 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
                 ))}
               </>
             </div>
-            <div className="d-flex justify-content-center">
+            <div className="d-flex gap-3 flex-wrap justify-content-center">
               <>
-                {values.addedCostAttachments?.map((item) => (
+                {values.addedCostAttachments?.map((item, index) => (
                   <span
                     key={item.addedCostImageId}
                     style={{ color: "blue", cursor: "pointer" }}
                   >
                     <span onClick={() => viewImage(item)}>
-                      {item.imageName}
+                      {`Recipt ${index + 1}`}
                     </span>
-                    <MdDeleteForever color="red" />
+                    <MdDeleteForever
+                      size="20px"
+                      color="red"
+                      onClick={() => deleteAddedCostImage(item)}
+                    />
                   </span>
                 ))}
               </>
@@ -298,7 +301,7 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
             <div className="d-flex justify-content-between">
               <button
                 type="button"
-                className="btn btn-warning btn-hover text-center"
+                className="btn btn-danger btn-hover"
                 onClick={() =>
                   dispatch(
                     updateAddedCostModalCloseState({
@@ -307,7 +310,7 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
                   )
                 }
               >
-                <IoCloseCircleSharp color="#fff" className="me-1" />
+                <IoCloseCircleSharp size="20px" color="#fff" className="me-1" />
                 Close
               </button>
               <button
@@ -315,9 +318,9 @@ export const AddedCostDetails = ({ inventoryId }: AddedCostDetailsProps) => {
                 className="ms-auto btn btn-primary btn-hover"
               >
                 {values.addedCostId ? (
-                  <MdBrowserUpdated color="#fff" className="me-2" />
+                  <MdBrowserUpdated size="20px" color="#fff" className="me-2" />
                 ) : (
-                  <FaRegSave color="#fff" className="me-2" />
+                  <FaRegSave size="20px" color="#fff" className="me-2" />
                 )}
                 {values.addedCostId ? "Update" : "Save"}
               </button>

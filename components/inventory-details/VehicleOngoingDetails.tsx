@@ -19,7 +19,7 @@ export const SwitchRow = ({
   numberOfCols?: number;
 }) => {
   return (
-    <div className={`row row-cols-${numberOfCols || 2} mb-2`}>{children}</div>
+    <div className={`row row-cols-${numberOfCols || 2} mb-3`}>{children}</div>
   );
 };
 
@@ -39,7 +39,6 @@ export default function VehicleOngoingDetails({
   values,
   titleSwitchHandler,
   switchHandler,
-  handleSubmit,
 }: VehicleOngoingDetailsProps) {
   const getSwitchValue = (value: boolean | string) => {
     if (!value) return 0;

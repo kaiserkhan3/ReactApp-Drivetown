@@ -1,27 +1,43 @@
 import {
+  deleteInventoryFile,
   getAddedCostDataByInventoryId,
   getInventoryById,
   getInventoryByStatus,
+  getInventoryCountByOnlineStatus,
+  getInventoryFiles,
   getNewVehicleDropdownData,
   getPossibleKeyNumber,
   getVehicleMakesList,
   getVinData,
   inventoryCUD,
+  uploadInventoryDocuments,
 } from "@/actions/inventory-actions";
-import { Inventory } from "@/models/inventory";
-import { useInfiniteQuery, useMutation, useQuery } from "@tanstack/react-query";
+import {
+  createOrUpdateRepresentative,
+  getRepresentativeInfoById,
+} from "@/actions/representative-actions";
+import { Inventory, RepresentativeDto } from "@/models/inventory";
+import { DeleteFile, InventoryDocs } from "@/models/inventory/models";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 export const useInventory = (
   status = "Available",
   make?: string,
   year?: string,
-  searchText?: string
+  searchText?: string,
+  onlineStatus?: string
 ) => {
   let params = new URLSearchParams();
   // Add parameters
   make && params.append("make", make);
   year && params.append("year", year);
   searchText && params.append("searchText", searchText);
+  onlineStatus && params.append("onlineStatus", onlineStatus);
 
   const queryParam = params.toString() ? "?" + params.toString() : "";
 
@@ -34,7 +50,7 @@ export const useInventory = (
     hasNextPage,
     isFetching,
   } = useInfiniteQuery({
-    queryKey: ["InventoryList", status, make, year, searchText],
+    queryKey: ["InventoryList", status, make, year, searchText, onlineStatus],
     queryFn: ({ pageParam }) =>
       getInventoryByStatus(status, pageParam, queryParam),
     initialPageParam: 1,
@@ -51,6 +67,19 @@ export const useInventory = (
     fetchNextPage,
     hasNextPage,
     isFetching,
+  };
+};
+
+export const useRepresentativeinfById = (id: number) => {
+  const { data, refetch } = useQuery({
+    queryKey: ["representativeinfo", id],
+    queryFn: () => getRepresentativeInfoById(id),
+    enabled: false,
+  });
+
+  return {
+    data,
+    refetch,
   };
 };
 
@@ -74,10 +103,13 @@ export const useRepresentative = () => {
   const contractors = data?.filter(
     (f) => f.representativeType === "Contractor"
   );
+
+  const refferedBy = data?.filter((f) => f.representativeType === "Sold By");
   return {
     purchaseFrom,
     announcement,
     contractors,
+    refferedBy,
     buyers,
     isPending,
     isError,
@@ -118,6 +150,22 @@ export const useGetInventoryById = (id: number) => {
 
   return {
     invData: data,
+    isFetching,
+    error,
+    isError,
+    refetch,
+  };
+};
+
+export const useGetInventoryCountsByOnlineStatus = () => {
+  const { data, isFetching, error, isError, refetch } = useQuery({
+    queryKey: ["inventoryCountsByOnlineStatus"],
+    queryFn: () => getInventoryCountByOnlineStatus(),
+    staleTime: 600000,
+  });
+
+  return {
+    invCountByOnlineStatus: data,
     isFetching,
     error,
     isError,
@@ -167,5 +215,79 @@ export const useInventoryCUD = () => {
     data,
     error,
     isError,
+  };
+};
+
+export const useCreateOrUpdateRepresentativeHook = () => {
+  const queryClient = useQueryClient();
+  const { mutate, isSuccess, data, isPending, status, error, isError } =
+    useMutation({
+      mutationFn: (data: RepresentativeDto) =>
+        createOrUpdateRepresentative(data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["Representative"],
+        });
+      },
+    });
+
+  return {
+    upsertRepresentative: mutate,
+    isSuccess,
+    isPending,
+    status,
+    data,
+    error,
+    isError,
+  };
+};
+
+export const useUploadDocuments = () => {
+  const { mutate, isSuccess, data, isPending, status, error, isError } =
+    useMutation({
+      mutationFn: (formData: any) => uploadInventoryDocuments(formData),
+      onSuccess: (data) => {
+        // Handle successful mutation, data contains the response from the server
+        return data;
+      },
+      onError: (error) => {
+        // Handle error
+        console.error("Mutation error:", error);
+      },
+    });
+
+  return {
+    uploadInvDocuments: mutate,
+    isSuccess,
+    isPending,
+    status,
+    data,
+    error,
+    isError,
+  };
+};
+
+export const useGetInventoryFiles = (inventoryDocs: InventoryDocs) => {
+  const { mutate, isSuccess, data, isPending, status } = useMutation({
+    mutationFn: () => getInventoryFiles(inventoryDocs),
+  });
+  return {
+    filesData: data,
+    getFilesData: mutate,
+    getFilesSuccess: isSuccess,
+    isPending,
+  };
+};
+
+export const useDeleteInventoryFiles = () => {
+  const { mutate, isPending, data, isSuccess } = useMutation({
+    mutationFn: (data: DeleteFile) => deleteInventoryFile(data),
+  });
+
+  return {
+    deleteFile: mutate,
+    isDeleteFilePending: isPending,
+    fileData: data,
+    isSuccess,
   };
 };

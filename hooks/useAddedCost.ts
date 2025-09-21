@@ -1,4 +1,8 @@
-import { upsertAddedCost } from "@/actions/added-cost-actions";
+import {
+  deleteAddedCostImage,
+  upsertAddedCost,
+} from "@/actions/added-cost-actions";
+import { AddedCostImageDto } from "@/models/inventory/addedcost.model";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useAddedCostCUD = () => {
@@ -21,5 +25,14 @@ export const useAddedCostCUD = () => {
     data,
     error,
     isError,
+  };
+};
+
+export const useDeleteAddedCostImage = () => {
+  const { mutate } = useMutation({
+    mutationFn: (value: AddedCostImageDto) => deleteAddedCostImage(value),
+  });
+  return {
+    deleteAddedCostImage: mutate,
   };
 };

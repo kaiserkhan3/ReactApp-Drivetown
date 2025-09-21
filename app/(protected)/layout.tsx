@@ -3,11 +3,13 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "../globals.css";
 import BootstapClient from "../../components/Bootstap.client";
-import DashboardLayoutBasic from "../../components/side-navigation/SideNav";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { TanstackProvider } from "@/components/providers/Tanstackprovider";
 import { CssBaseline } from "@mui/material";
 import { StoreProvider } from "@/components/providers/StoreProvider";
+import Provider from "@/components/providers/Provider";
+
+import { MasterLayout } from "@/components/master-page/master-layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +35,11 @@ export default function AfterLoginLayout({
     <>
       <AppRouterCacheProvider options={{ key: "css" }}>
         <StoreProvider>
-          <TanstackProvider>
-            <DashboardLayoutBasic>{children}</DashboardLayoutBasic>
-          </TanstackProvider>
+          <Provider>
+            <TanstackProvider>
+              <MasterLayout>{children}</MasterLayout>
+            </TanstackProvider>
+          </Provider>
         </StoreProvider>
         <CssBaseline />
         <BootstapClient />

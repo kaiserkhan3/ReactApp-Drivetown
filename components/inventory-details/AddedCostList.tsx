@@ -33,8 +33,20 @@ export default function AddedCostList({
             </td>
             <td scope="row">{row.price}</td>
             <td>
-              <CiEdit color="green" onClick={() => editRow(row)} />{" "}
-              <MdDeleteForever color="red" onClick={() => deleteRow(row)} />
+              <div className="d-flex gap-3">
+                <CiEdit
+                  color="green"
+                  size="20px"
+                  onClick={() => editRow(row)}
+                  style={{ cursor: "pointer" }}
+                />
+                <MdDeleteForever
+                  size="20px"
+                  color="red"
+                  onClick={() => deleteRow(row)}
+                  style={{ cursor: "pointer" }}
+                />
+              </div>
             </td>
           </tr>
         ))}
