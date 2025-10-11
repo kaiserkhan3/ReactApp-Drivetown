@@ -75,6 +75,11 @@ export default function UploadInventoryDocuments({
     }, 500);
   };
 
+  const hanleOpenDocumentClick = (row: InventoryImageDto) => {
+    const uri = `${process.env.NEXT_PUBLIC_SHARED_FOLDER_URL!}vehicle/${row.imageName}`;
+    window.open(uri, "_blank");
+  };
+
   return (
     <>
       <div className="row mt-3">
@@ -96,6 +101,7 @@ export default function UploadInventoryDocuments({
               name={item.name}
               filesData={filesData!}
               onDeleteFileHandler={onDeleteFileHandler}
+              onOpenFileHandler={hanleOpenDocumentClick}
             />
           </div>
         ))}

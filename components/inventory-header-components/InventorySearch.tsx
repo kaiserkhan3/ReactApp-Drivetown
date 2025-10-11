@@ -12,6 +12,10 @@ import { ChangeEvent } from "react";
 import { IoSearchOutline } from "react-icons/io5";
 
 export default function InventorySearch() {
+  const status = useStoreSelector((state) => state.search.status);
+  const make = useStoreSelector((state) => state.search.make);
+  const year = useStoreSelector((state) => state.search.year);
+  const searchText = useStoreSelector((state) => state.search.searchText);
   // Tankstack hooks
   const { makeList } = useVehicleMake();
   //store selector
@@ -74,6 +78,7 @@ export default function InventorySearch() {
               placeholder="Search by vin, at least 4 characters required"
               aria-label="search"
               aria-describedby="search"
+              defaultValue={searchText}
               onChange={searchTextChangeHandler}
             />
           </div>
@@ -89,6 +94,7 @@ export default function InventorySearch() {
             name="makes"
             list="make-list"
             placeholder="Enter a make"
+            value={make}
             onChange={makeChnageHandler}
           />
           <datalist id="make-list">

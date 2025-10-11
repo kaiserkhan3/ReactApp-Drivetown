@@ -16,10 +16,12 @@ import { ConfirmationDialogue } from "../control-components/ConfirmationDialogue
 
 type InventoryDetailsBtnControlsProps = {
   values: Inventory;
+  close?: () => void;
 };
 
 export default function InventoryDetailsBtnControls({
   values,
+  close,
 }: InventoryDetailsBtnControlsProps) {
   const isMarkAsSoldVisible = useStoreSelector(
     (state) => state.modal.isMarkAsSoldVisible
@@ -78,7 +80,9 @@ export default function InventoryDetailsBtnControls({
             type="button"
             className="btn btn-outline-danger btn-hover"
             onClick={() =>
-              dispatch(updateModalCloseState({ modalVisible: false }))
+              close
+                ? close()
+                : dispatch(updateModalCloseState({ modalVisible: false }))
             }
           >
             <IoCloseCircleSharp size="20px" color="#fff" className="me-1" />

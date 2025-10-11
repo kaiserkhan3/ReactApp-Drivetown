@@ -1,17 +1,49 @@
 "use client";
-import { useStoreSelector } from "@/app/store/hook";
+import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { DashboardHeaderCard } from "./dashboard-header-card";
+import { useState } from "react";
+import DialogModal from "../control-components/DialogModal";
+import NewInventory from "../inventory-list-components/new-inventory";
+import { updateOnlineStatus } from "@/app/store/search-slice";
+import { OnlineStatus } from "@/models/inventory";
 
 export const DashboardCard = () => {
+  const [modalVisible, setModalVisible] = useState(false);
+  const dispatch = useStoreDispatch();
   const data = useStoreSelector((state) => state.commonData);
   return (
     <>
+      {modalVisible && (
+        <DialogModal top={"3rem"} width="90vw" height="90vh">
+          <div className="p-4">
+            <div
+              style={{ display: "flex", justifyContent: "end", margin: "10px" }}
+            >
+              <button
+                type="button"
+                className="btn btn-sm btn-icon text-danger"
+                title="Delete"
+                onClick={() => {
+                  setModalVisible(false);
+                }}
+              >
+                <i className="bi bi-x-octagon" style={{ fontSize: "24px" }}></i>
+              </button>
+            </div>
+            <NewInventory />
+          </div>
+        </DialogModal>
+      )}
       <div className="row">
         <div className="col-md-3 col-sm-6 mb-4">
           <DashboardHeaderCard
             count={data.availableVehiclesCount}
             label="Showroom"
             icon={<i className="bi bi-shop"></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateOnlineStatus(OnlineStatus.All));
+            }}
           />
         </div>
 
@@ -28,6 +60,10 @@ export const DashboardCard = () => {
             count={data.repairShopCount}
             label="Repair Shop"
             icon={<i className="bi bi-tools"></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateOnlineStatus(OnlineStatus.RepairShop));
+            }}
           />
         </div>
 
@@ -36,6 +72,10 @@ export const DashboardCard = () => {
             count={data.wholesaleCount}
             label="Whole Sale"
             icon={<i className="bi bi-truck"></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateOnlineStatus(OnlineStatus.WholeSale));
+            }}
           />
         </div>
       </div>
@@ -45,6 +85,10 @@ export const DashboardCard = () => {
             count={data.inspectionCount}
             label="Inspection"
             icon={<i className="bi bi-clipboard-check"></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateOnlineStatus(OnlineStatus.PendingInspection));
+            }}
           />
         </div>
 
@@ -53,6 +97,10 @@ export const DashboardCard = () => {
             count={data.registerationCount}
             label="Pending Registration"
             icon={<i className="bi bi-dash"></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateOnlineStatus(OnlineStatus.PendingRegisteration));
+            }}
           />
         </div>
 
@@ -61,6 +109,10 @@ export const DashboardCard = () => {
             count={data.onlineCount}
             label="Online"
             icon={<i className="bi bi-globe"></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateOnlineStatus(OnlineStatus.Online));
+            }}
           />
         </div>
 

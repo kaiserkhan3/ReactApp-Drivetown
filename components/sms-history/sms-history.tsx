@@ -125,6 +125,15 @@ export const SMSHistoryComponent = () => {
                             <i className="bi bi-reply-fill"></i>
                           </button>
                         )}
+                        {row.status !== "received" && (
+                          <button
+                            className="btn btn-sm btn-primary btn-icon fs-6"
+                            title="Reply"
+                            onClick={() => replyBtnHandler(row.to)}
+                          >
+                            <i className="bi bi-reply-fill"></i>
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

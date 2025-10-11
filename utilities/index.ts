@@ -20,3 +20,8 @@ export function getCurrentYear() {
 
 export const range = (start: number, end: number) =>
   [...Array(end - start + 1).keys()].map((i) => i + start);
+
+export const openDocumentInNewTab = (folderName: string, fileName: string) => {
+  const uri = `${process.env.NEXT_PUBLIC_SHARED_FOLDER_URL!}${folderName}/${fileName}`;
+  window.open(uri, "_blank");
+};

@@ -65,9 +65,17 @@ export const DailyExpenses = () => {
     index: number,
     row: DailyExpenseDto
   ) => {
-    const { name, value } = event.target;
+    const { name, value } = event?.target;
+    console.log("Event", event?.target);
 
     row.category = name === "category" ? value : row.category;
+    if (name === "inventoryId") {
+      const selectedIndex = (event.target as HTMLSelectElement)?.selectedIndex;
+      const selectedLabel = (event.target as HTMLSelectElement).options[
+        selectedIndex
+      ].text;
+      row.vehicleInfo = selectedLabel;
+    }
     let isDisabled = ![
       "Car Parts",
       "Repair",
@@ -82,12 +90,6 @@ export const DailyExpenses = () => {
         [name as keyof DailyExpenseDto]: value,
         disabled: isDisabled,
       };
-      editRow.inventoryId = isDisabled ? undefined : editRow.inventoryId;
-      editRow.vehicleInfo = editRow.inventoryId
-        ? vehiclesDataForDropdown?.find(
-            (f) => f.inventoryId === editRow.inventoryId
-          )?.vehicleInfo
-        : "";
       editRow.isError =
         !editRow.disabled && !editRow.inventoryId ? true : false;
 
@@ -104,14 +106,14 @@ export const DailyExpenses = () => {
   };
 
   const savebtnHandler = async (row: DailyExpenseDto, index: number) => {
-    if (row.inventoryId) {
-      row.vehicleInfo = vehiclesDataForDropdown?.find(
-        (f) => f.inventoryId === row.inventoryId!
-      )?.vehicleInfo;
-    } else {
-      row.inventoryId = undefined;
-      row.vehicleInfo = "";
-    }
+    // if (row.inventoryId) {
+    //   row.vehicleInfo = vehiclesDataForDropdown?.find(
+    //     (f) => f.inventoryId === row.inventoryId!
+    //   )?.vehicleInfo;
+    // } else {
+    //   row.inventoryId = undefined;
+    //   row.vehicleInfo = "";
+    // }
     if (row.dailyExpenseId) {
       row.updatedBy = userId;
     } else {
@@ -122,7 +124,9 @@ export const DailyExpenses = () => {
       toast.error("Please Select Vehicle");
       return;
     }
+
     const response = await addOrUpdateDailyExpense(row);
+    dailyExpenseRefetch();
     toast.success(response);
     handleEditBtnClick(index, false);
   };

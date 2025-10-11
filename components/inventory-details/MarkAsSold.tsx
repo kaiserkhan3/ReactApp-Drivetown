@@ -22,7 +22,7 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
   const { refferedBy } = useRepresentative();
   const dispatch = useStoreDispatch();
 
-  const { upsertInventory } = useInventoryCUD();
+  const { upsertInventory, data } = useInventoryCUD();
   const {
     values,
     setValues,
@@ -56,9 +56,10 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
     );
     upsertInventory(values);
     dispatch(updateisMarkAsSoldVisibleFlag({ isMarkAsSoldVisible: false }));
-    toast.success(
-      `${values.iYear} ${values.make} ${values.model} Marked to sold successfully`
-    );
+    // toast.success(
+    //   `${values.iYear} ${values.make} ${values.model} Marked to sold successfully`
+    // );
+    toast.success(data?.message);
   };
 
   const phoneNumberChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
@@ -366,7 +367,7 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
                   id="customerPhoneNumber"
                   name="customerPhoneNumber"
                   placeholder="Enter Customer Phone Number"
-                  value={values.customerPhoneNumber || undefined}
+                  value={values.customerPhoneNumber || ""}
                   onChange={phoneNumberChangeHandler}
                   onBlur={handleBlur}
                 />

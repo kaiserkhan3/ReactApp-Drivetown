@@ -37,7 +37,6 @@ export const getUserShortInfoWithRolehook = () => {
   const { data } = useQuery({
     queryKey: ["UsersShortInfo"],
     queryFn: getUsersWithRoleShortInfo,
-    staleTime: cacheTime,
   });
 
   return {

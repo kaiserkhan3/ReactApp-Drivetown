@@ -15,9 +15,11 @@ import { costDetailsSchems } from "@/Schemas";
 import UploadDocuments, { DocumentsMetaData } from "./UploadDocuments";
 import { inventoryDetailsTabs } from "@/models/inventory";
 import { useUserData } from "@/hooks/useUserData";
+import Link from "next/link";
 
 type InventoryDetailsProps = {
   inventoryId?: number;
+  close?: () => void;
 };
 
 const inventoryDocumentsConfig: DocumentsMetaData[] = [
@@ -62,6 +64,7 @@ const inventoryImagesConfig: DocumentsMetaData[] = [
 
 export default function InventoryDetails({
   inventoryId,
+  close,
 }: InventoryDetailsProps) {
   const [activeTab, setActiveTab] = useState<string>(
     inventoryDetailsTabs.details
@@ -150,32 +153,32 @@ export default function InventoryDetails({
     <>
       <ul className="nav nav-tabs">
         <li className="nav-item">
-          <a
+          <Link
             className={`nav-link ${activeTab === inventoryDetailsTabs.details ? "active" : ""}`}
             aria-current="page"
-            href="#"
+            href=""
             onClick={() => setActiveTab(inventoryDetailsTabs.details)}
           >
             {inventoryDetailsTabs.details}
-          </a>
+          </Link>
         </li>
         <li className="nav-item">
-          <a
+          <Link
             className={`nav-link ${activeTab === inventoryDetailsTabs.documents ? "active" : ""}`}
-            href="#"
+            href=""
             onClick={() => setActiveTab(inventoryDetailsTabs.documents)}
           >
             {inventoryDetailsTabs.documents}
-          </a>
+          </Link>
         </li>
         <li className="nav-item">
-          <a
+          <Link
             className={`nav-link ${activeTab === inventoryDetailsTabs.images ? "active" : ""}`}
-            href="#"
+            href=""
             onClick={() => setActiveTab(inventoryDetailsTabs.images)}
           >
             {inventoryDetailsTabs.images}
-          </a>
+          </Link>
         </li>
         {isAdmin && (
           <li className="nav-item">
@@ -237,7 +240,7 @@ export default function InventoryDetails({
             />
           )}
         </div>
-        <InventoryDetailsBtnControls values={values} />
+        <InventoryDetailsBtnControls close={close} values={values} />
       </Suspense>
     </>
   );

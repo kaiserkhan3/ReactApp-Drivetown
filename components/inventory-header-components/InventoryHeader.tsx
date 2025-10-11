@@ -16,7 +16,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-primary btn-hover"
-          onClick={() => dispatch(updateOnlineStatus(OnlineStatus.Online))}
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.Online));
+          }}
         >
           <i className="bi bi-globe"></i> Online (
           {invCountByOnlineStatus?.onlineCount})
@@ -24,7 +27,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-secondary"
-          onClick={() => dispatch(updateOnlineStatus(OnlineStatus.NotOnline))}
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.NotOnline));
+          }}
         >
           <i className="bi bi-ban"></i> Not Online (
           {invCountByOnlineStatus?.notOnlineCount})
@@ -32,9 +38,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-info"
-          onClick={() =>
-            dispatch(updateOnlineStatus(OnlineStatus.OnlineBelow30Days))
-          }
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.OnlineBelow30Days));
+          }}
         >
           <i className="bi bi-globe"></i> Online &lt; 30 Days (
           {invCountByOnlineStatus?.lessthan30DaysCount})
@@ -42,9 +49,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-warning"
-          onClick={() =>
-            dispatch(updateOnlineStatus(OnlineStatus.OnlineBetween3060days))
-          }
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.OnlineBetween3060days));
+          }}
         >
           <i className="bi bi-globe"></i> Online between 30 - 60 Days (
           {invCountByOnlineStatus?.between3060daysCount})
@@ -52,9 +60,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-danger"
-          onClick={() =>
-            dispatch(updateOnlineStatus(OnlineStatus.OnlineAbove60Days))
-          }
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.OnlineAbove60Days));
+          }}
         >
           <i className="bi bi-globe"></i> Online &gt; 60 Days (
           {invCountByOnlineStatus?.moreThan60DaysCount})
@@ -62,7 +71,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-success"
-          onClick={() => dispatch(updateOnlineStatus(OnlineStatus.WholeSale))}
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.WholeSale));
+          }}
         >
           <i className="bi bi-truck"></i> Whole Sale (
           {invCountByOnlineStatus?.wholesaleCount})
@@ -70,7 +82,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-dark"
-          onClick={() => dispatch(updateOnlineStatus(OnlineStatus.RepairShop))}
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.RepairShop));
+          }}
         >
           <i className="bi bi-tools"></i> Repair Shop (
           {invCountByOnlineStatus?.repairShopCount})
@@ -78,7 +93,10 @@ function InventoryHeader() {
         <button
           type="button"
           className="btn btn-success btn-hover"
-          onClick={() => dispatch(updateOnlineStatus(OnlineStatus.All))}
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.All));
+          }}
         >
           <i className="bi bi-ban"></i> All (
           {invCountByOnlineStatus?.availableVehiclesCount})

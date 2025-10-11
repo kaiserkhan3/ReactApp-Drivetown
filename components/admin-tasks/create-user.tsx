@@ -7,6 +7,7 @@ import { FormikErrors, FormikHelpers, useFormik } from "formik";
 import { CreateUserSchema } from "@/Schemas";
 import { UserInitialValues } from "./Initial-values/user-initial-values";
 import { useGetUserDetailHook, useUserCUD } from "@/hooks/useUserData";
+import { openDocumentInNewTab } from "@/utilities";
 
 export const CreateUser = ({
   userId,
@@ -36,7 +37,7 @@ export const CreateUser = ({
     enableReinitialize: true,
     onSubmit: (values, actions) => onSubmit(values, actions),
   });
-
+  const formData = new FormData();
   useEffect(() => {
     if (userId) {
       refetch();
@@ -54,7 +55,11 @@ export const CreateUser = ({
     closeBtnHandler();
   };
 
-  const formData = new FormData();
+  const toggleUserStatus = () => {
+    values.isActive = !values.isActive;
+    formData.append("user", JSON.stringify(values));
+    upsertUser(formData);
+  };
 
   const fileUploadHandler = async (event: ChangeEvent<HTMLInputElement>) => {
     const { name, files } = event.target;
@@ -322,7 +327,15 @@ export const CreateUser = ({
           <div className="col-12 mb-3" style={{ border: "1px solid blue" }}>
             <div className="d-flex gap-2 flex-wrap">
               {data?.documents?.map((f, index) => (
-                <span key={f.documentName + index}>
+                <span
+                  key={f.documentName + index}
+                  style={{
+                    cursor: "pointer",
+                    color: "blue",
+                    textDecoration: "underline",
+                  }}
+                  onClick={() => openDocumentInNewTab("Users", f.documentName)}
+                >
                   <small>{index + 1}. </small>
                   {f.documentName}
                 </span>
@@ -350,9 +363,19 @@ export const CreateUser = ({
           >
             Cancel
           </button>
-          <button type="submit" className="btn btn-primary btn-hover">
+          <button type="submit" className="btn btn-primary btn-hover me-2">
             {values.userId ? "Update" : "Create"} User
           </button>
+          {values?.userId && (
+            <button
+              type="button"
+              className="btn btn-hover"
+              style={{ backgroundColor: "purple", color: "#FFF" }}
+              onClick={toggleUserStatus}
+            >
+              {values.isActive ? "Deactivate User" : "Activate User"}
+            </button>
+          )}
         </div>
       </div>
     </form>

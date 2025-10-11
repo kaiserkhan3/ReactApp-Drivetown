@@ -155,6 +155,7 @@ export const LogFixedExpenses = ({ month, year }: LogFixedExpensesProps) => {
 
   useEffect(() => {
     if (data!?.length > 0) {
+      console.log("Fixed expenses ", data);
       let expensesFromDb: ExpenseTypes = {
         Salary: data?.filter((i) => i.expenseType === "Salary") || [newRow],
         Rent: data?.filter((i) => i.expenseType === "Rent") || [newRow],
@@ -380,7 +381,7 @@ export const LogFixedExpenses = ({ month, year }: LogFixedExpensesProps) => {
                               <td>{index + 1}</td>
                               {/* <td>{row.expenseType}</td> */}
                               <td>{row.name}</td>
-                              <td>{row.amount}</td>
+                              <td>$ {row.amount}</td>
                               <td>{row.comments}</td>
                               <td>
                                 <div className="d-flex">
@@ -424,15 +425,17 @@ export const LogFixedExpenses = ({ month, year }: LogFixedExpensesProps) => {
   );
 };
 
-const TotalsRow = ({
+export const TotalsRow = ({
   calculateTotals,
 }: {
   calculateTotals: () => number | undefined;
 }) => {
   return (
     <tr>
-      <th colSpan={2}>Total Expenses:</th>
-      <th>{calculateTotals()}</th>
+      <th colSpan={2} style={{ textAlign: "right" }}>
+        Total Expenses:
+      </th>
+      <th>$ {calculateTotals()?.toFixed(2)}</th>
       <th colSpan={2}></th>
     </tr>
   );

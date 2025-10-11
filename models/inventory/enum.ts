@@ -49,13 +49,15 @@ export const dashboardTabs = {
 
 export const OnlineStatus = {
   Online: "Online",
-  NotOnline: "NotOnline",
-  RepairShop: "RepairShop",
-  WholeSale: "WholeSale",
+  NotOnline: "Not Online",
+  RepairShop: "Repair Shop",
+  WholeSale: "Whole Sale",
   OnlineBelow30Days: "OnlineBelow30Days",
   OnlineBetween3060days: "OnlineBetween3060days",
   OnlineAbove60Days: "OnlineAbove60Days",
   WholeSaleSold: "WholeSaleSold",
   RegularSaleSold: "RegularSaleSold",
+  PendingRegisteration: "PendingRegisteration",
+  PendingInspection: "PendingInspection",
   All: "All",
 };

@@ -19,7 +19,7 @@ export default function VehicleInfo({ row }: { row: Inventory }) {
   } = row || {};
 
   const imageUrl = imageName
-    ? process.env.NEXT_PUBLIC_VEHICLE_IMAGE_BASE_URL! + imageName
+    ? `${process.env.NEXT_PUBLIC_SHARED_FOLDER_URL!}vehicle/${imageName}`
     : defaultImage.src;
 
   return (

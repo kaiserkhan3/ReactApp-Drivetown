@@ -60,7 +60,7 @@ export const markAsSoldSchema = Yup.object({
     .oneOf([true], "Please select all expense added")
     .required("Please select all expense added"),
   customerName: Yup.string()
-    .matches(/^[a-z][A-Z][a-z0-9.-]{0,49}$/, "Name must start with a letter!")
+    .matches(/^[a-zA-Z ]+$/, "Name must start with a letter!")
     .required("Customer name is mandatory"),
   customerPhoneNumber: Yup.string().required(
     "Customer phone number is mandatory"

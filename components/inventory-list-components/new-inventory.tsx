@@ -7,11 +7,11 @@ import InventorySearch from "../inventory-header-components/InventorySearch";
 import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { useInventory } from "@/hooks/useInventory";
 import { InfiniteData } from "@tanstack/react-query";
-import { Inventory } from "@/models/inventory";
+import { Inventory, OnlineStatus } from "@/models/inventory";
 import InventoryCardList from "./Inventory-card-list";
 import ThreeDotLoader from "../loading-control/Three-dots-loader/ThreeDotsLoader";
 import DialogModal from "../control-components/DialogModal";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import {
   updateIsDetailViewFlag,
   updateModalCloseState,
@@ -19,6 +19,11 @@ import {
 import InventoryDetails from "../inventory-details/InventoryDetails";
 import { useUserData } from "@/hooks/useUserData";
 import AddEditVehicle from "../new-vehicle/add-edit-vehicle";
+import {
+  updateMake,
+  updateOnlineStatus,
+  updateSearchText,
+} from "@/app/store/search-slice";
 
 export type inventoryProps = {
   data: InfiniteData<Inventory[], unknown> | undefined;
@@ -84,6 +89,10 @@ export default function NewInventory() {
         return { text: `${onlineDays}`, bgColor: "darkblue" };
     }
   };
+
+  // if (isFetching) {
+  //   return <ThreeDotLoader />;
+  // }
 
   return (
     <>

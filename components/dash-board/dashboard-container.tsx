@@ -4,15 +4,24 @@ import { PageHeaderCommon } from "../master-page/page-header";
 import { DashboardCard } from "./dashboard-card";
 import { PieSalesBySaleType } from "./chart-reports/salesByTypeOfSale";
 import { SalesOverviewChart } from "./chart-reports/SalesOverviewChart";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { getCurrentYear } from "@/utilities";
 import { ProfitWithMargin } from "./chart-reports/profit-with-margin";
 import { ExpensePieChart } from "./chart-reports/expense-pie-chart";
 import { TodoContainer } from "./todo/todo-container";
+import { RecentActivity } from "./recent-activities/recent-activity";
+import { useStoreDispatch } from "@/app/store/hook";
+import {
+  updateMake,
+  updateOnlineStatus,
+  updateSearchText,
+} from "@/app/store/search-slice";
+import { OnlineStatus } from "@/models/inventory";
 
 export const DashboardContainer = () => {
   const [saleType, setSaleType] = useState<string>("All");
   const [year, setYear] = useState<number>(getCurrentYear());
+  const dispatch = useStoreDispatch();
 
   const inputChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -22,6 +31,14 @@ export const DashboardContainer = () => {
       setYear(getCurrentYear());
     }
   };
+
+  useEffect(() => {
+    return () => {
+      dispatch(updateSearchText(undefined));
+      dispatch(updateMake(undefined));
+      dispatch(updateOnlineStatus(OnlineStatus.All));
+    };
+  });
 
   return (
     <>
@@ -256,69 +273,7 @@ export const DashboardContainer = () => {
             <TodoContainer />
           </div>
 
-          <div className="col-lg-6 mb-4">
-            <div className="card">
-              <div className="card-header">
-                <h5 className="card-title">Recent Activity</h5>
-              </div>
-              <div className="card-body p-0">
-                <ul className="activity-list">
-                  <li className="activity-item">
-                    <div className="activity-icon sale">
-                      <i className="bi bi-cash"></i>
-                    </div>
-                    <div className="activity-content">
-                      <div className="activity-title">New Sale Completed</div>
-                      <div className="activity-details">
-                        2019 BMW 3 Series sold to Sarah Johnson
-                      </div>
-                      <div className="activity-time">Today, 11:23 AM</div>
-                    </div>
-                  </li>
-                  <li className="activity-item">
-                    <div className="activity-icon appointment">
-                      <i className="bi bi-calendar-check"></i>
-                    </div>
-                    <div className="activity-content">
-                      <div className="activity-title">
-                        New Appointment Scheduled
-                      </div>
-                      <div className="activity-details">
-                        Test drive with Michael Brown for Mercedes C-className
-                      </div>
-                      <div className="activity-time">Today, 10:15 AM</div>
-                    </div>
-                  </li>
-                  <li className="activity-item">
-                    <div className="activity-icon inventory">
-                      <i className="bi bi-car-front"></i>
-                    </div>
-                    <div className="activity-content">
-                      <div className="activity-title">
-                        New Vehicle Added to Inventory
-                      </div>
-                      <div className="activity-details">
-                        2022 Toyota Camry Hybrid added by Robert
-                      </div>
-                      <div className="activity-time">Yesterday, 3:45 PM</div>
-                    </div>
-                  </li>
-                  <li className="activity-item">
-                    <div className="activity-icon service">
-                      <i className="bi bi-tools"></i>
-                    </div>
-                    <div className="activity-content">
-                      <div className="activity-title">Service Completed</div>
-                      <div className="activity-details">
-                        Oil change and inspection for Honda Accord
-                      </div>
-                      <div className="activity-time">Yesterday, 2:30 PM</div>
-                    </div>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
+          <RecentActivity />
         </div>
       </div>
     </>

@@ -9,6 +9,7 @@ import {
   addOrUpdateMonthlyExpense,
   deleteMonthlyExpense,
 } from "@/actions/fixed-expense-actions";
+import { TotalsRow } from "./log-fixed-expenses";
 
 type ExpenseTypes = {
   Salary: ExpensesNewDto[];
@@ -47,7 +48,7 @@ export const ViewAndEditExpenses = ({
   month,
   year,
 }: ViewAndEditExpensesProps) => {
-  const { data } = useGetAllExpensesForGivenYear(year);
+  const { data, refetch } = useGetAllExpensesForGivenYear(year);
   const [tableSections, setTableSections] =
     useState<ExpenseTypes>(initialValues);
 
@@ -77,6 +78,7 @@ export const ViewAndEditExpenses = ({
     });
     if (row.id) {
       await deleteMonthlyExpense(row.id);
+      refetch();
       toast.success("Deleted the row successfully!");
     }
   };
@@ -118,30 +120,40 @@ export const ViewAndEditExpenses = ({
     });
   };
 
+  const calculateTotals = () => {
+    return data
+      ?.filter((i) => i.expenseMonth === month)
+      .reduce((acc, currentRow) => acc + Number(currentRow.amount || 0), 0);
+  };
+
   const savebtnHandler = async (
     row: FixedExpenseDto,
     key: string,
     index: number
   ) => {
-    console.log(row);
     const response = await addOrUpdateMonthlyExpense(row);
     handleEditBtnClick(key, index, false);
+    refetch();
     toast.success("Saved/updated the record successfully!");
   };
 
   useEffect(() => {
     if (data!?.length > 0) {
       let expensesFromDb: ExpenseTypes = {
-        Salary: data?.filter((i) => i.expenseType === "Salary") || [newRow],
-        Rent: data?.filter((i) => i.expenseType === "Rent") || [newRow],
-        Marketing: data?.filter((i) => i.expenseType === "Marketing") || [
-          newRow,
-        ],
-        Utilities: data?.filter((i) => i.expenseType === "Utilities") || [
-          newRow,
-        ],
+        Salary: data?.filter(
+          (i) => i.expenseType === "Salary" && i.expenseMonth === month
+        ) || [newRow],
+        Rent: data?.filter(
+          (i) => i.expenseType === "Rent" && i.expenseMonth === month
+        ) || [newRow],
+        Marketing: data?.filter(
+          (i) => i.expenseType === "Marketing" && i.expenseMonth === month
+        ) || [newRow],
+        Utilities: data?.filter(
+          (i) => i.expenseType === "Utilities" && i.expenseMonth === month
+        ) || [newRow],
         OtherExpenses: data?.filter(
-          (i) => i.expenseType === "OtherExpenses"
+          (i) => i.expenseType === "OtherExpenses" && i.expenseMonth === month
         ) || [newRow],
       };
       setTableSections(expensesFromDb);
@@ -154,64 +166,10 @@ export const ViewAndEditExpenses = ({
         className="mt-3 shadow-lg rounded pt-3"
         style={{ display: "flex", width: "70vw" }}
       >
-        {/* <div className="d-flex gap-4 mb-5 ms-3">
-          <div style={{ width: "20rem" }}>
-            <GroupControl id="year" label="Salary Year">
-              <select
-                className="form-select"
-                id="year"
-                name="year"
-                value={selectedYear}
-                onChange={(event) => {
-                  setSelectedYear(parseInt(event.target.value));
-                  setSelectedMonth(moment().format("MMMM"));
-                }}
-                aria-label="Floating label select example"
-              >
-                {range(2019, new Date().getFullYear())?.map((year) => (
-                  <option key={year} value={year}>
-                    {year}
-                  </option>
-                ))}
-              </select>
-            </GroupControl>
-          </div>
-          <hr />
-          <div style={{ width: "20rem" }}>
-            <GroupControl id="month" label="Select Month">
-              <select
-                className="form-select"
-                id="month"
-                name="month"
-                value={selectedMonth}
-                onChange={(event) => setSelectedMonth(event.target.value)}
-                aria-label="Floating label select example"
-              >
-                {months?.map((month) => (
-                  <option key={month} value={month}>
-                    {month}
-                  </option>
-                ))}
-                <option key="yearlyReport" value="yearlyReport">
-                  Yearly Report
-                </option>
-              </select>
-            </GroupControl>
-          </div>
-          <div>
-            <button
-              type="button"
-              className="btn btn-primary btn-hover"
-              onClick={() => setIsConfirmDialogVisible(true)}
-            >
-              Apply Expenses for{" "}
-              <span>{`${selectedYear} ${selectedMonth}`}</span>
-            </button>
-          </div>
-        </div> */}
         <div className="table-container">
           <table className="table " style={{ width: "70vw" }}>
             <thead>
+              <TotalsRow calculateTotals={calculateTotals} />
               <tr>
                 <th>#id</th>
                 {/* <th>Type</th> */}
@@ -257,14 +215,6 @@ export const ViewAndEditExpenses = ({
                             {row.edit ? (
                               <tr key={key + "edit" + index}>
                                 <td>{index + 1}</td>
-                                {/* <td>
-                                <input
-                                  type="text"
-                                  name="expenseType"
-                                  defaultValue={key}
-                                  readOnly
-                                />
-                              </td> */}
                                 <td>
                                   <input
                                     type="text"
@@ -333,7 +283,7 @@ export const ViewAndEditExpenses = ({
                                 <td>{index + 1}</td>
                                 {/* <td>{row.expenseType}</td> */}
                                 <td>{row.name}</td>
-                                <td>{row.amount}</td>
+                                <td>$ {row.amount}</td>
                                 <td>{row.comments}</td>
                                 <td>
                                   <div className="d-flex">
@@ -368,6 +318,7 @@ export const ViewAndEditExpenses = ({
                   </React.Fragment>
                 );
               })}
+              <TotalsRow calculateTotals={calculateTotals} />
             </tbody>
           </table>
         </div>

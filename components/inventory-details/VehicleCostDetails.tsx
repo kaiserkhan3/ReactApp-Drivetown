@@ -70,7 +70,8 @@ export default function VehicleCostDetails({
       parseInt(totalSalePrice) -
       (values.floorCost ?? 0) -
       (values.originalCost ?? 0) -
-      (values.totalAddedCost ?? 0)
+      (values.totalAddedCost ?? 0) -
+      (values.addedCostFromDailyExpenses ?? 0)
     ).toFixed(2);
 
     return { calCulatedTotalSalePrice, profit };
@@ -109,7 +110,7 @@ export default function VehicleCostDetails({
                 )}
               </div>
               <div className="col-md-6 px-2">
-                <p className="mark">
+                <p className="mark" style={{ fontSize: "12px" }}>
                   <a
                     href="#"
                     onClick={(e) => {
@@ -122,13 +123,17 @@ export default function VehicleCostDetails({
                     }}
                     style={{ color: "#5f95ed", cursor: "pointer" }}
                   >
-                    Added Cost: {values.totalAddedCost}
+                    Added Cost: ${values.totalAddedCost ?? 0}
                   </a>
                   <br />
-                  Total Original Cost:
+                  Cost From DailyExpenses: $
+                  {values.addedCostFromDailyExpenses ?? 0}
+                  <br />
+                  Total Original Cost: $
                   {(values.originalCost ?? 0) +
                     (values.totalAddedCost ?? 0) +
-                    (values.floorCost ?? 0)}
+                    (values.floorCost ?? 0) +
+                    (values.addedCostFromDailyExpenses ?? 0)}
                 </p>
               </div>
               {/* <div className="form-floating col-md-6 px-2">

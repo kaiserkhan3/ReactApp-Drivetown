@@ -7,6 +7,8 @@ type DialogModalPorps = {
   zIndex?: number;
   top?: string;
   minWidth?: string;
+  width?: string;
+  height?: string;
 };
 
 export default function DialogModal({
@@ -14,6 +16,8 @@ export default function DialogModal({
   zIndex = 1000000,
   top = "3rem",
   minWidth,
+  width,
+  height,
 }: DialogModalPorps) {
   return createPortal(
     <>
@@ -27,6 +31,8 @@ export default function DialogModal({
           scrollBehavior: "smooth",
           overflow: "auto",
           minWidth: `${minWidth}`,
+          width: `${width}`,
+          height: `${height}`,
         }}
         open
       >

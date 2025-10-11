@@ -1,15 +1,19 @@
 "use client";
 import { useRepresentative } from "@/hooks/useInventory";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import DialogModal from "../control-components/DialogModal";
 import { SaleReportDto } from "@/models/inventory";
 import moment from "moment";
 import InventoryDetails from "../inventory-details/InventoryDetails";
 import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { updateModalCloseState } from "@/app/store/modal-slice";
+import { useGetAllExpensesForGivenYear } from "@/hooks/useFixedExpense";
+import { title } from "process";
 
 type SaleReportTableProps = {
   data: SaleReportDto[];
+  year: number;
+  month: string;
 };
 
 const tableColumns: string[] = [
@@ -27,7 +31,13 @@ const tableColumns: string[] = [
   "PROFIT",
 ];
 
-export const SaleReportTable = ({ data }: SaleReportTableProps) => {
+export const SaleReportTable = ({
+  data,
+  year,
+  month,
+}: SaleReportTableProps) => {
+  const { data: yearExpenses } = useGetAllExpensesForGivenYear(year);
+  const [expenses, setExpenses] = useState(0);
   const modalVisible = useStoreSelector((state) => state.modal.modalVisible);
   const [invId, setInvId] = useState<number | undefined>(undefined);
   const dispatch = useStoreDispatch();
@@ -44,6 +54,19 @@ export const SaleReportTable = ({ data }: SaleReportTableProps) => {
       0
     );
   };
+
+  const calculateExpenseTotals = () => {
+    return yearExpenses
+      ?.filter((i) => i.expenseMonth === month)
+      ?.reduce((acc, currentRow) => acc + Number(currentRow.amount || 0), 0);
+  };
+
+  useEffect(() => {
+    if (yearExpenses) {
+      console.log("Year Expenses", yearExpenses);
+      setExpenses(calculateExpenseTotals()!);
+    }
+  }, [month, yearExpenses]);
 
   return (
     <>
@@ -94,6 +117,11 @@ export const SaleReportTable = ({ data }: SaleReportTableProps) => {
                   </tr>
                 ))}
                 <TotalsRow calculateTotals={calculateTotals} />
+                <ExpenseRow expenses={expenses} title="Expenses" />
+                <ExpenseRow
+                  expenses={calculateTotals("profit") - expenses}
+                  title="Profit"
+                />
               </tbody>
             </table>
           </div>
@@ -122,6 +150,25 @@ const TotalsRow = ({
           whiteSpace: "nowrap",
         }}
       >{`$ ${calculateTotals("profit")}`}</th>
+    </tr>
+  );
+};
+
+const ExpenseRow = ({
+  expenses,
+  title,
+}: {
+  expenses: number;
+  title: string;
+}) => {
+  return (
+    <tr>
+      <th colSpan={11} style={{ textAlign: "right" }}>
+        {title}
+      </th>
+      <th colSpan={2} style={{ textAlign: "right" }}>
+        $ {expenses}
+      </th>
     </tr>
   );
 };

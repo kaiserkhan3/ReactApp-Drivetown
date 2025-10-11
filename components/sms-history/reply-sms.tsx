@@ -28,8 +28,6 @@ export const ReplySMS = ({ messages, close, toPhoneNumber }: ReplySMSProps) => {
   return (
     <div
       style={{
-        display: "flex",
-        flexDirection: "column",
         minWidth: "20vw",
         maxWidth: "40vw",
         minHeight: "30vh",
@@ -44,7 +42,6 @@ export const ReplySMS = ({ messages, close, toPhoneNumber }: ReplySMSProps) => {
             display: "flex",
             flexDirection: "column",
             gap: "10px",
-
             padding: "5px",
           }}
         >
@@ -53,30 +50,26 @@ export const ReplySMS = ({ messages, close, toPhoneNumber }: ReplySMSProps) => {
               key={index}
               style={{
                 display: "flex",
-                flexDirection: "column",
-                backgroundColor: `${message.status === "delivered" ? "lightgreen" : "lightblue"}`,
-                padding: "5px",
-                alignItems: `${message.status === "delivered" ? "start" : "end"}`,
+                justifyContent:
+                  message.status === "delivered" ? "flex-start" : "flex-end",
               }}
             >
               <div
+                className="shadow-lg rounded"
                 style={{
-                  margin: 0,
-                  marginLeft: `${message.status === "delivered" ? "50px" : ""}`,
-                  marginRight: `${message.status === "received" ? "50px" : ""}`,
-                  textTransform: "capitalize",
+                  display: "flex",
+                  flexDirection: "column",
+                  backgroundColor:
+                    message.status === "delivered" ? "lightgreen" : "lightblue",
+                  padding: "5px 10px",
+                  maxWidth: "90%", // optional: keeps bubbles from stretching too wide
                 }}
               >
-                {message.status}:
+                <div style={{ textTransform: "capitalize" }}>
+                  {message.status}:
+                </div>
+                <p style={{ padding: "0px", margin: "0px" }}>{message.body}</p>
               </div>
-              <p
-                style={{
-                  marginLeft: `${message.status === "delivered" ? "70px" : ""}`,
-                  marginRight: `${message.status === "received" ? "40px" : ""}`,
-                }}
-              >
-                {message.body}
-              </p>
             </div>
           ))}
           <div className="mt-5">

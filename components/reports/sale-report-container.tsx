@@ -142,6 +142,8 @@ export const SaleReportContainer = () => {
           </div>
         )}
         <SaleReportTable
+          year={selectedYear}
+          month={selectedMonth}
           data={
             selectedMonth === "yearlyReport"
               ? saleReportData!

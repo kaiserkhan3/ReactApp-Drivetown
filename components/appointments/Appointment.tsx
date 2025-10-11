@@ -27,8 +27,9 @@ import { GroupControl } from "../control-components/group-control";
 type AppoinmentProps = {
   selectedDate?: string;
   appointmentId?: number;
-  month: number;
-  year: number;
+  month?: number;
+  year?: number;
+  close?: () => void;
 };
 
 export const Appointment = ({
@@ -36,6 +37,7 @@ export const Appointment = ({
   appointmentId,
   month,
   year,
+  close,
 }: AppoinmentProps) => {
   const { userId, userName, role } = useUserData();
   const dispatch = useStoreDispatch();
@@ -327,11 +329,15 @@ export const Appointment = ({
             <button
               type="button"
               className="btn btn-outline-danger btn-hover"
-              onClick={() =>
-                dispatch(
-                  updateIsAppointmentVisibleFlag({ isAppointmentVisble: false })
-                )
-              }
+              onClick={() => {
+                close
+                  ? close()
+                  : dispatch(
+                      updateIsAppointmentVisibleFlag({
+                        isAppointmentVisble: false,
+                      })
+                    );
+              }}
             >
               Close
             </button>

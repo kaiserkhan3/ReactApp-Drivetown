@@ -1,7 +1,7 @@
 export interface Inventory {
   inventoryId: number | undefined;
 
-  purchaseDate: Date | null;
+  purchaseDate?: Date | null;
 
   vin?: string;
 
@@ -96,7 +96,7 @@ export interface Inventory {
 
   isLicensePlate?: boolean;
 
-  testDriveId: number;
+  testDriveId?: number;
 
   photoUrl?: string;
 
@@ -142,7 +142,7 @@ export interface Inventory {
 
   documentFee?: number;
 
-  saleTax?: number;
+  saleTax?: number | undefined;
 
   isWholeSale?: boolean;
 
@@ -155,6 +155,7 @@ export interface Inventory {
   purchaseFrom?: string;
   totalOriginalCost?: number;
   totalAddedCost?: number;
+  addedCostFromDailyExpenses?: number;
   profit?: number;
   soldBy?: string;
   imageName?: string;
