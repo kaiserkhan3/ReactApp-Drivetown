@@ -1,11 +1,11 @@
 "use client";
-import { useUserData } from "@/hooks/useUserData";
+import { authorize } from "@/actions/users-actions";
 import drivetownLogo from "@/public/drivetown.webp";
 import { loginSchema } from "@/Schemas";
 import { useFormik, FormikHelpers } from "formik";
-import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 type loginType = {
   userName: string;
@@ -18,8 +18,7 @@ const initialValues: loginType = {
 };
 
 export function Login() {
-  const { userId } = useUserData();
-  console.log("userId", userId);
+  const [loginBtn, setLoginBtn] = useState(false);
   const {
     values,
     setValues,
@@ -35,23 +34,28 @@ export function Login() {
   });
 
   const router = useRouter();
-  useEffect(() => {
-    if (userId) {
-      router.push("/inventory-management");
-    }
-  }, [userId]);
+
   const onSubmit = async (
     values: loginType,
     formikHelpers: FormikHelpers<loginType>
   ) => {
-    const response = await signIn("credentials", {
+    setLoginBtn(true);
+    const response = await authorize({
       userName: values.userName,
       password: values.password,
-      redirect: false,
     });
-
-    if (response?.ok) {
-      router.push("/inventory-management");
+    if (response) {
+      if (!response.isSuccess) {
+        setLoginBtn(false);
+        toast.error(response.message);
+        return;
+      }
+      if (response.isSuccess) {
+        toast.success("Login successful. Redirecting to dashboard...");
+        sessionStorage.setItem("user", JSON.stringify(response));
+        setLoginBtn(false);
+        router.push("/dashboard");
+      }
     }
   };
 
@@ -106,8 +110,12 @@ export function Login() {
               <p className="text-danger">{errors.password}</p>
             )}
           </div>
-          <button type="submit" className="btn btn-primary btn-hover">
-            Sign In
+          <button
+            type="submit"
+            className="btn btn-primary btn-hover"
+            disabled={loginBtn}
+          >
+            {loginBtn ? "Processing..." : "Sign In"}
           </button>
         </div>
       </form>

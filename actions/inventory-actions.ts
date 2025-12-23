@@ -13,9 +13,10 @@ import {
   InventoryImageDto,
   MasterPageData,
   VehcilesCountByOnlineStatus,
+  VehicleUpdatesDto,
 } from "@/models/inventory/models";
 
-const pageSize = 20;
+const pageSize = 40;
 export async function getInventoryByStatus(
   status = "Available",
   pageNumber = 1,
@@ -191,6 +192,17 @@ export async function getMasterPageData() {
   const response = await fetch(baseUrl + "api/Inventory/masterpagedata");
   if (response.ok) {
     result = (await response.json()) as MasterPageData;
+  }
+  return result;
+}
+
+export async function getVehicleUpdates(inventoryId: number) {
+  let result: VehicleUpdatesDto = {} as VehicleUpdatesDto;
+  const response = await fetch(
+    baseUrl + `api/Inventory/vehicleupdates/${inventoryId}`
+  );
+  if (response.ok) {
+    result = (await response.json()) as VehicleUpdatesDto;
   }
   return result;
 }

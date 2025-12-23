@@ -22,6 +22,7 @@ export const FileUpload = ({
           return fileInputRef.current?.click();
         }}
       >
+        <i className="bi bi-box-arrow-up text-white me-2"></i>
         {label}
       </button>
       <input

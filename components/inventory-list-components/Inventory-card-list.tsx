@@ -30,7 +30,7 @@ export default function InventoryCardList({
   return (
     <div
       ref={listRef}
-      className="d-flex flex-wrap gap-3 mt-3 p-2 justify-content-sm-center justify-content-lg-between"
+      className="d-flex flex-wrap gap-2 mt-3 p-2 justify-content-sm-center justify-content-lg-between shadow-lg"
       style={{
         height: "65vh",
         scrollBehavior: "auto",

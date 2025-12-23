@@ -3,24 +3,37 @@ import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { getCommonData } from "@/app/store/master-data-slice";
 import { useUserData } from "@/hooks/useUserData";
 import drivetownLogo from "@/public/drivetown.webp";
+import { checkLoginValid } from "@/utilities/check-login-valid";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
+
+import { SendSmsButton } from "./send-sms-button";
 
 type MasterLayoutProps = {
   children: React.ReactNode;
 };
 
 export const MasterLayout = ({ children }: MasterLayoutProps) => {
+  const router = useRouter();
   const path = usePathname();
   const { userName, role } = useUserData();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const dispatch = useStoreDispatch();
   const commonData = useStoreSelector((state) => state.commonData);
 
   useEffect(() => {
     dispatch(getCommonData());
+    // mark as mounted so client-only values (localStorage, store updates) render only on client
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!checkLoginValid()) {
+      router.push("/");
+    }
   }, []);
 
   return (
@@ -51,7 +64,13 @@ export const MasterLayout = ({ children }: MasterLayoutProps) => {
         </div>
 
         <div className="nav-section">
-          <div className="nav-section-title">Main</div>
+          <div
+            className="nav-section-title"
+            style={{ display: "flex", justifyContent: "space-between" }}
+          >
+            <span>Main</span>
+            <SendSmsButton />
+          </div>
           <Link
             href="/dashboard"
             className={path === "/dashboard" ? "nav-item active" : "nav-item"}
@@ -69,9 +88,11 @@ export const MasterLayout = ({ children }: MasterLayoutProps) => {
           >
             <i className="bi bi-car-front"></i>
             <span>Inventory</span>
-            <span className="badge rounded-pill">
-              {commonData.availableVehiclesCount}
-            </span>
+            {mounted && (
+              <span className="badge rounded-pill">
+                {commonData?.availableVehiclesCount}
+              </span>
+            )}
           </Link>
           <Link
             href="/appoinments"
@@ -80,9 +101,11 @@ export const MasterLayout = ({ children }: MasterLayoutProps) => {
           >
             <i className="bi bi-calendar-check"></i>
             <span>Appointments</span>
-            <span className="badge rounded-pill">
-              {commonData.appoinmentsCount}
-            </span>
+            {mounted && (
+              <span className="badge rounded-pill">
+                {commonData?.appoinmentsCount}
+              </span>
+            )}
           </Link>
           <Link href="/dailyexpenses" className="nav-item">
             <i className="bi bi-check2-square"></i>
@@ -90,7 +113,7 @@ export const MasterLayout = ({ children }: MasterLayoutProps) => {
           </Link>
         </div>
 
-        <div className="nav-section">
+        {/* <div className="nav-section">
           <div className="nav-section-title">Sales</div>
           <a href="#" className="nav-item">
             <i className="bi bi-cart"></i>
@@ -104,7 +127,7 @@ export const MasterLayout = ({ children }: MasterLayoutProps) => {
             <i className="bi bi-file-earmark-text"></i>
             <span>Contracts</span>
           </a>
-        </div>
+        </div> */}
 
         <div className="nav-section">
           <div className="nav-section-title">Communication</div>
@@ -117,44 +140,56 @@ export const MasterLayout = ({ children }: MasterLayoutProps) => {
             <span>SMS History</span>
           </Link>
 
-          <a href="#" className="nav-item">
+          {/* <a href="#" className="nav-item">
             <i className="bi bi-telephone"></i>
             <span>Call Log</span>
           </a>
           <a href="#" className="nav-item">
             <i className="bi bi-people"></i>
             <span>Customers</span>
-          </a>
+          </a> */}
         </div>
-
-        <div className="nav-section">
-          <div className="nav-section-title">Administration</div>
-          <Link href="/masters" className="nav-item">
-            <i className="bi bi-gear"></i>
-            <span>Masters</span>
-          </Link>
-          <a href="#" className="nav-item">
+        {mounted && role === "Admin" && (
+          <div className="nav-section">
+            <div className="nav-section-title">Administration</div>
+            <Link href="/masters" className="nav-item">
+              <i className="bi bi-gear"></i>
+              <span>Masters</span>
+            </Link>
+            {/* <a href="#" className="nav-item">
             <i className="bi bi-bank"></i>
             <span>Bank Info</span>
-          </a>
-          <Link href="/reports" className="nav-item">
-            <i className="bi bi-graph-up"></i>
-            <span>Reports</span>
-          </Link>
-          <a href="#" className="nav-item">
+          </a> */}
+            <Link href="/reports" className="nav-item">
+              <i className="bi bi-graph-up"></i>
+              <span>Reports</span>
+            </Link>
+            {/* <a href="#" className="nav-item">
             <i className="bi bi-sliders"></i>
             <span>Settings</span>
-          </a>
-        </div>
+          </a> */}
+          </div>
+        )}
 
         <div className="sidebar-footer">
-          <div className="user-info">
-            <div className="user-avatar">M</div>
-            <div className="user-details">
-              <div className="user-name">{userName}</div>
-              <div className="user-role">{role}</div>
+          {mounted ? (
+            <div className="user-info">
+              <div className="user-avatar">M</div>
+              <div className="user-details">
+                <div className="user-name">{userName}</div>
+                <div className="user-role">{role}</div>
+              </div>
             </div>
-          </div>
+          ) : (
+            // placeholder to keep DOM shape consistent on server
+            <div className="user-info" aria-hidden>
+              <div className="user-avatar">&nbsp;</div>
+              <div className="user-details">
+                <div className="user-name">&nbsp;</div>
+                <div className="user-role">&nbsp;</div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div

@@ -3,19 +3,89 @@ import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import {
   updateDisplayType,
   updateMake,
+  updateOnlineStatus,
   updateSearchText,
   updateStatus,
   updateYear,
 } from "@/app/store/search-slice";
 import { useVehicleMake } from "@/hooks/useInventory";
+import { OnlineStatus, Status } from "@/models/inventory";
 import { ChangeEvent } from "react";
 import { IoSearchOutline } from "react-icons/io5";
+
+// bootstrapVars.ts
+export const compactBtnStyles: React.CSSProperties = {
+  "--bs-btn-padding-y": "0.25rem",
+  "--bs-btn-padding-x": "0.5rem",
+  "--bs-btn-font-size": "0.75rem",
+} as React.CSSProperties;
 
 export default function InventorySearch() {
   const status = useStoreSelector((state) => state.search.status);
   const make = useStoreSelector((state) => state.search.make);
   const year = useStoreSelector((state) => state.search.year);
   const searchText = useStoreSelector((state) => state.search.searchText);
+  const invCountByOnlineStatus = useStoreSelector((state) => state.commonData);
+  // Online statueses
+  const onlineStatusButtons = [
+    {
+      label: "Online",
+      icon: "bi-globe",
+      status: OnlineStatus.Online,
+      count: invCountByOnlineStatus?.onlineCount,
+      variant: "primary",
+    },
+    {
+      label: "Not Online",
+      icon: "bi-ban",
+      status: OnlineStatus.NotOnline,
+      count: invCountByOnlineStatus?.notOnlineCount,
+      variant: "secondary",
+    },
+    {
+      label: "Online < 30 Days",
+      icon: "bi-globe",
+      status: OnlineStatus.OnlineBelow30Days,
+      count: invCountByOnlineStatus?.lessthan30DaysCount,
+      variant: "info",
+    },
+    {
+      label: "Online 30 - 60 Days",
+      icon: "bi-globe",
+      status: OnlineStatus.OnlineBetween3060days,
+      count: invCountByOnlineStatus?.between3060daysCount,
+      variant: "warning",
+    },
+    {
+      label: "Online > 60 Days",
+      icon: "bi-globe",
+      status: OnlineStatus.OnlineAbove60Days,
+      count: invCountByOnlineStatus?.moreThan60DaysCount,
+      variant: "danger",
+    },
+    {
+      label: "Whole Sale",
+      icon: "bi-truck",
+      status: OnlineStatus.WholeSale,
+      count: invCountByOnlineStatus?.wholesaleCount,
+      variant: "success",
+    },
+    {
+      label: "Repair Shop",
+      icon: "bi-tools",
+      status: OnlineStatus.RepairShop,
+      count: invCountByOnlineStatus?.repairShopCount,
+      variant: "dark",
+    },
+    {
+      label: "All",
+      icon: "bi-ban",
+      status: OnlineStatus.All,
+      count: invCountByOnlineStatus?.availableVehiclesCount,
+      variant: "success",
+      extraClass: "btn-hover",
+    },
+  ];
   // Tankstack hooks
   const { makeList } = useVehicleMake();
   //store selector
@@ -114,6 +184,7 @@ export default function InventorySearch() {
             name="year"
             list="year-list"
             placeholder="Enter a year"
+            value={year}
             onChange={yearCheangeHandler}
           />
           <datalist id="year-list">
@@ -149,26 +220,61 @@ export default function InventorySearch() {
           </select>
         </div>
       </div>
-      <div className="d-flex">
+      <div className="d-flex gap-1 flex-wrap">
+        {onlineStatusButtons.map(
+          ({ label, icon, status, count, variant, extraClass }) => (
+            <button
+              key={status}
+              type="button"
+              className={`btn btn-${variant} ${extraClass ?? ""}`}
+              style={compactBtnStyles}
+              onClick={() => {
+                dispatch(updateStatus(Status.available));
+                dispatch(updateOnlineStatus(status));
+              }}
+            >
+              <i className={`bi ${icon}`}></i> {label} ({count})
+            </button>
+          )
+        )}
+
+        <button
+          key="purchased"
+          type="button"
+          className="btn"
+          style={{
+            ...compactBtnStyles,
+            background: "purple",
+            color: "white",
+          }}
+          onClick={() => {
+            dispatch(updateStatus(Status.available));
+            dispatch(updateOnlineStatus(OnlineStatus.isPurchased));
+          }}
+        >
+          <i className="bi bi-car-front text-white me-2"></i>
+          Recently Marked As Purchased
+        </button>
+
         <div
           className="ms-auto btn-group"
           role="group"
-          aria-label="Basic outlined example"
+          aria-label="Display type toggle"
         >
-          <button
-            type="button"
-            onClick={() => dispatch(updateDisplayType("list"))}
-            className={`btn ${displayType === "list" ? "btn-primary" : "btn-outline-primary"} `}
-          >
-            <i className="bi bi-list-ul"></i> List
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatch(updateDisplayType("grid"))}
-            className={`btn ${displayType === "grid" ? "btn-primary" : "btn-outline-primary"} `}
-          >
-            <i className="bi bi-grid"></i> Grid
-          </button>
+          {["list", "grid"].map((val) => (
+            <button
+              key={val}
+              type="button"
+              style={compactBtnStyles}
+              onClick={() =>
+                dispatch(updateDisplayType(val === "list" ? "list" : "grid"))
+              }
+              className={`btn ${displayType === val ? "btn-primary" : "btn-outline-primary"}`}
+            >
+              <i className={`bi bi-${val === "list" ? "list-ul" : "grid"}`}></i>
+              {val.charAt(0).toUpperCase() + val.slice(1)}
+            </button>
+          ))}
         </div>
       </div>
     </div>

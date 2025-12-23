@@ -95,7 +95,6 @@ export const RecentActivity = () => {
         }
       }
     });
-    console.log("Result from build activities", result);
     return result;
   };
 
@@ -117,7 +116,6 @@ export const RecentActivity = () => {
   useEffect(() => {
     if (data && data?.length > 0) {
       setActivities({ ...initialValues });
-      console.log("recent activities", data);
       const updated = buildRecentActivities(data);
       setActivities({ ...updated });
     }

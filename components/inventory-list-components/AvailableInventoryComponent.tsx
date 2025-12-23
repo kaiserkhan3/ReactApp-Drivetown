@@ -78,11 +78,23 @@ function AvailableInventoryComponent({
                 <TableRow key={row.vin! + index}>
                   <TableCell>
                     {row.days}
-                    <TourRoundedIcon sx={{ color: getBgColor(row.days!) }} />
+                    <i
+                      className="bi bi-clock-history ms-2"
+                      style={{
+                        color: `${getBgColor(row.days!)}`,
+                        fontSize: "18px",
+                      }}
+                    ></i>
                   </TableCell>
                   <TableCell>
-                    {row.onlineDays}{" "}
-                    <TourRoundedIcon sx={{ color: getBgColor(row.days!) }} />
+                    {row.onlineDays}
+                    <i
+                      className="bi bi-clock-history ms-2"
+                      style={{
+                        color: `${getBgColor(row.days!)}`,
+                        fontSize: "18px",
+                      }}
+                    ></i>
                   </TableCell>
                   <TableCell>
                     vin: {row.vin}

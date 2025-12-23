@@ -1357,14 +1357,14 @@ body.dark-mode .appointment-title {
 }
 
 /* Bootstrap Button Overrides for Desktop */
-.btn {
+/* .btn {
   padding: 0.5rem 1rem;
   font-size: 1rem;
-}
+} */
 
-.btn-group > .btn {
+/* .btn-group > .btn {
   padding: 0.5rem 1rem;
-}
+} */
 
 /* Breadcrumb Adjustments */
 .breadcrumb {
@@ -1389,4 +1389,16 @@ body.dark-mode .appointment-title {
   top: 0; /* Stick to the top of the container */
   background-color: #f8f9fa; /* Optional: Add a background color to the header */
   z-index: 1; /* Ensure the header stays above scrolling content */
+}
+
+table-container thead tr:first-child th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.table-container thead tr:nth-child(2) th {
+  position: sticky;
+  top: 40px;
+  z-index: 1; /* Adjust this value to match the height of the first row */
 }

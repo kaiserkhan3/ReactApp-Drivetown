@@ -1,16 +1,29 @@
 "use client";
 import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { DashboardHeaderCard } from "./dashboard-header-card";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DialogModal from "../control-components/DialogModal";
 import NewInventory from "../inventory-list-components/new-inventory";
-import { updateOnlineStatus } from "@/app/store/search-slice";
+import {
+  updateAcv,
+  updateOnlineStatus,
+  updateOve,
+} from "@/app/store/search-slice";
 import { OnlineStatus } from "@/models/inventory";
+import { useUserData } from "@/hooks/useUserData";
 
 export const DashboardCard = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const dispatch = useStoreDispatch();
   const data = useStoreSelector((state) => state.commonData);
+  const { role } = useUserData();
+
+  // Guard to avoid rendering client-only values during SSR which can cause
+  // hydration mismatches. Render deterministic placeholders until mounted.
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   return (
     <>
       {modalVisible && (
@@ -35,9 +48,9 @@ export const DashboardCard = () => {
         </DialogModal>
       )}
       <div className="row">
-        <div className="col-md-3 col-sm-6 mb-4">
+        <div className="col-md-2 col-sm-6 mb-4">
           <DashboardHeaderCard
-            count={data.availableVehiclesCount}
+            count={mounted ? data.availableVehiclesCount : 0}
             label="Showroom"
             icon={<i className="bi bi-shop"></i>}
             clickEvent={() => {
@@ -46,18 +59,17 @@ export const DashboardCard = () => {
             }}
           />
         </div>
-
-        <div className="col-md-3 col-sm-6 mb-4">
+        <div className="col-md-2 col-sm-6 mb-4">
           <DashboardHeaderCard
-            count={data.appoinmentsCount}
+            count={mounted ? data.appoinmentsCount : 0}
             label="Appointments"
             icon={<i className="bi bi-calendar-check"></i>}
           />
         </div>
 
-        <div className="col-md-3 col-sm-6 mb-4">
+        <div className="col-md-2 col-sm-6 mb-4">
           <DashboardHeaderCard
-            count={data.repairShopCount}
+            count={mounted ? data.repairShopCount : 0}
             label="Repair Shop"
             icon={<i className="bi bi-tools"></i>}
             clickEvent={() => {
@@ -67,9 +79,9 @@ export const DashboardCard = () => {
           />
         </div>
 
-        <div className="col-md-3 col-sm-6 mb-4">
+        <div className="col-md-2 col-sm-6 mb-4">
           <DashboardHeaderCard
-            count={data.wholesaleCount}
+            count={mounted ? data.wholesaleCount : 0}
             label="Whole Sale"
             icon={<i className="bi bi-truck"></i>}
             clickEvent={() => {
@@ -78,11 +90,33 @@ export const DashboardCard = () => {
             }}
           />
         </div>
+        <div className="col-md-2 col-sm-6 mb-4">
+          <DashboardHeaderCard
+            count={mounted ? data.acvCount : 0}
+            label="ACV Online"
+            icon={<i className="bi bi-globe" style={{ color: "green" }}></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateAcv(true));
+            }}
+          />
+        </div>
+        <div className="col-md-2 col-sm-6 mb-4">
+          <DashboardHeaderCard
+            count={mounted ? data.oveCount : 0}
+            label="OVE Online"
+            icon={<i className="bi bi-globe" style={{ color: "green" }}></i>}
+            clickEvent={() => {
+              setModalVisible(true);
+              dispatch(updateOve(true));
+            }}
+          />
+        </div>
       </div>
       <div className="row">
-        <div className="col-md-3 col-sm-6 mb-4">
+        <div className="col-md-2 col-sm-6 mb-4">
           <DashboardHeaderCard
-            count={data.inspectionCount}
+            count={mounted ? data.inspectionCount : 0}
             label="Inspection"
             icon={<i className="bi bi-clipboard-check"></i>}
             clickEvent={() => {
@@ -92,9 +126,9 @@ export const DashboardCard = () => {
           />
         </div>
 
-        <div className="col-md-3 col-sm-6 mb-4">
+        <div className="col-md-2 col-sm-6 mb-4">
           <DashboardHeaderCard
-            count={data.registerationCount}
+            count={mounted ? data.registerationCount : 0}
             label="Pending Registration"
             icon={<i className="bi bi-dash"></i>}
             clickEvent={() => {
@@ -104,9 +138,9 @@ export const DashboardCard = () => {
           />
         </div>
 
-        <div className="col-md-3 col-sm-6 mb-4">
+        <div className="col-md-2 col-sm-6 mb-4">
           <DashboardHeaderCard
-            count={data.onlineCount}
+            count={mounted ? data.onlineCount : 0}
             label="Online"
             icon={<i className="bi bi-globe"></i>}
             clickEvent={() => {
@@ -115,131 +149,16 @@ export const DashboardCard = () => {
             }}
           />
         </div>
-
-        <div className="col-md-3 col-sm-6 mb-4">
-          <DashboardHeaderCard
-            count={"$ " + data.monthlyProfit}
-            label="Monthly Profit"
-            icon={<i className="bi bi-cash-coin"></i>}
-          />
-        </div>
+        {mounted && role === "Admin" && (
+          <div className="col-md-2 col-sm-6 mb-4">
+            <DashboardHeaderCard
+              count={"$ " + data.monthlyProfit}
+              label="Monthly Profit"
+              icon={<i className="bi bi-cash-coin"></i>}
+            />
+          </div>
+        )}
       </div>
-      {/* <div className="row">
-        <div className="col-lg-8 mb-4">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title">Sales Overview</h5>
-              <div className="card-actions">
-                <div className="btn-group btn-group-sm">
-                  <button
-                    type="button"
-                    className="btn btn-outline-secondary active"
-                  >
-                    All Sales
-                  </button>
-                  <button type="button" className="btn btn-outline-secondary">
-                    Cash Only
-                  </button>
-                  <button type="button" className="btn btn-outline-secondary">
-                    Finance
-                  </button>
-                  <button type="button" className="btn btn-outline-secondary">
-                    Wholesale
-                  </button>
-                </div>
-                <div className="dropdown">
-                  <button
-                    className="btn btn-sm btn-outline-secondary dropdown-toggle"
-                    type="button"
-                    id="exportSalesDropdown"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    <i className="bi bi-download"></i>
-                  </button>
-                  <ul
-                    className="dropdown-menu dropdown-menu-end"
-                    aria-labelledby="exportSalesDropdown"
-                  >
-                    <li>
-                      <a className="dropdown-item" href="#">
-                        <i className="bi bi-filetype-csv"></i> Export CSV
-                      </a>
-                    </li>
-                    <li>
-                      <a className="dropdown-item" href="#">
-                        <i className="bi bi-filetype-json"></i> Export JSON
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div className="card-body">
-              <canvas
-                id="salesChart"
-                height="300"
-                width="562"
-                style={{
-                  display: "block",
-                  boxSizing: "border-box",
-                  height: "300px",
-                  width: "562px",
-                }}
-              ></canvas>
-            </div>
-          </div>
-        </div>
-
-        <div className="col-lg-4 mb-4">
-          <div className="card">
-            <div className="card-header">
-              <h5 className="card-title">Sales by Type</h5>
-              <div className="card-actions">
-                <div className="dropdown">
-                  <button
-                    className="btn btn-sm btn-outline-secondary dropdown-toggle"
-                    type="button"
-                    id="salesTypeDropdown"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false"
-                  >
-                    <i className="bi bi-download"></i>
-                  </button>
-                  <ul
-                    className="dropdown-menu dropdown-menu-end"
-                    aria-labelledby="salesTypeDropdown"
-                  >
-                    <li>
-                      <a className="dropdown-item" href="#">
-                        <i className="bi bi-filetype-csv"></i> Export CSV
-                      </a>
-                    </li>
-                    <li>
-                      <a className="dropdown-item" href="#">
-                        <i className="bi bi-filetype-json"></i> Export JSON
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div className="card-body">
-              <canvas
-                id="salesTypeChart"
-                height="300"
-                width="240"
-                style={{
-                  display: "block",
-                  boxSizing: "border-box",
-                  height: "300px",
-                  width: "240px",
-                }}
-              ></canvas>
-            </div>
-          </div>
-        </div>
-      </div> */}
     </>
   );
 };

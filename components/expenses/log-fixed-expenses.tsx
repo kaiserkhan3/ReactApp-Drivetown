@@ -96,7 +96,6 @@ export const LogFixedExpenses = ({ month, year }: LogFixedExpensesProps) => {
     index: number
   ) => {
     const { name, value } = event.target;
-    console.log(`${name}: ${value}`);
     setTableSections((prevState) => {
       const list = { ...prevState };
       let selectedRow = list[key as keyof ExpenseTypes];
@@ -147,7 +146,6 @@ export const LogFixedExpenses = ({ month, year }: LogFixedExpensesProps) => {
   };
 
   const savebtnHandler = (row: FixedExpenseDto, key: string, index: number) => {
-    console.log(row);
     addOrUpdateFixedExpense(row);
     handleEditBtnClick(key, index, false);
     toast.success("Saved/updated the record successfully!");
@@ -155,7 +153,6 @@ export const LogFixedExpenses = ({ month, year }: LogFixedExpensesProps) => {
 
   useEffect(() => {
     if (data!?.length > 0) {
-      console.log("Fixed expenses ", data);
       let expensesFromDb: ExpenseTypes = {
         Salary: data?.filter((i) => i.expenseType === "Salary") || [newRow],
         Rent: data?.filter((i) => i.expenseType === "Rent") || [newRow],

@@ -1,7 +1,6 @@
 "use client";
 import * as React from "react";
-import Vehicle from "@/public/d-image.jpg";
-import { VehcilesCountByOnlineStatus } from "@/models/inventory/models";
+
 import { OnlineStatus, Status } from "@/models/inventory/enum";
 import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { updateOnlineStatus, updateStatus } from "@/app/store/search-slice";

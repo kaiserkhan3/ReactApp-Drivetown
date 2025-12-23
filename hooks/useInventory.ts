@@ -8,6 +8,7 @@ import {
   getNewVehicleDropdownData,
   getPossibleKeyNumber,
   getVehicleMakesList,
+  getVehicleUpdates,
   getVinData,
   inventoryCUD,
   uploadInventoryDocuments,
@@ -30,7 +31,9 @@ export const useInventory = (
   make?: string,
   year?: string,
   searchText?: string,
-  onlineStatus?: string
+  onlineStatus?: string,
+  isAcv?: boolean,
+  isOve?: boolean
 ) => {
   let params = new URLSearchParams();
   // Add parameters
@@ -38,13 +41,16 @@ export const useInventory = (
   year && params.append("year", year);
   searchText && params.append("searchText", searchText);
   onlineStatus && params.append("onlineStatus", onlineStatus);
+  isAcv !== undefined && params.append("isAcv", String(isAcv));
+  isOve !== undefined && params.append("isOve", String(isOve));
 
+  // Construct the final query string
   const queryParam = params.toString() ? "?" + params.toString() : "";
-
   const {
     data,
     isPending,
     isError,
+    refetch,
     error,
     fetchNextPage,
     hasNextPage,
@@ -64,9 +70,33 @@ export const useInventory = (
     isPending,
     isError,
     error,
+    refetchInventories: refetch,
     fetchNextPage,
     hasNextPage,
     isFetching,
+  };
+};
+
+export const useInventoryCUD = () => {
+  // ["InventoryList", status, make, year, searchText, onlineStatus]
+  const queryClient = useQueryClient();
+  const { mutate, isSuccess, data, isPending, error, isError } = useMutation({
+    mutationFn: (invetory: Inventory) => inventoryCUD(invetory),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["InventoryList"],
+      });
+    },
+  });
+
+  return {
+    upsertInventory: mutate,
+    isSuccess,
+    isPending,
+    status,
+    data,
+    error,
+    isError,
   };
 };
 
@@ -142,6 +172,18 @@ export const useVehicleMake = () => {
   };
 };
 
+export const useGetVechileUpdates = (inventoryId: number) => {
+  const { data, refetch } = useQuery({
+    queryKey: ["vehicleUpdates", inventoryId],
+    queryFn: () => getVehicleUpdates(inventoryId),
+  });
+
+  return {
+    vehicleUpdates: data,
+    refetchVehicleUpdates: refetch,
+  };
+};
+
 export const useGetInventoryById = (id: number) => {
   const { data, isFetching, error, isError, refetch } = useQuery({
     queryKey: ["inventoryById", id],
@@ -198,23 +240,6 @@ export const useFetchVinData = (vin: string) => {
   return {
     vinData: data,
     getVinData: refetch,
-  };
-};
-
-export const useInventoryCUD = () => {
-  const { mutate, isSuccess, data, isPending, status, error, isError } =
-    useMutation({
-      mutationFn: (invetory: Inventory) => inventoryCUD(invetory),
-    });
-
-  return {
-    upsertInventory: mutate,
-    isSuccess,
-    isPending,
-    status,
-    data,
-    error,
-    isError,
   };
 };
 

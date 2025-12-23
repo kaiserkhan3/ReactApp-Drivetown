@@ -1,5 +1,4 @@
 "use client";
-import { createPortal } from "react-dom";
 import classes from "./DialogModal.module.css";
 
 type DialogModalPorps = {
@@ -11,6 +10,11 @@ type DialogModalPorps = {
   height?: string;
 };
 
+// Render modal inline (no portal) to ensure the modal content stays within
+// the same React tree and Suspense boundaries as its parent. Rendering via
+// a portal into a top-level DOM node (like #modal) can cause React's async
+// instrumentation to see resources created inside a Suspense boundary get
+// cleaned up outside of it which triggers the runtime warning.
 export default function DialogModal({
   children,
   zIndex = 1000000,
@@ -19,11 +23,10 @@ export default function DialogModal({
   width,
   height,
 }: DialogModalPorps) {
-  return createPortal(
+  return (
     <>
       <div className={classes.backdrop}></div>
       <dialog
-        id="modal"
         className={classes.modal}
         style={{
           zIndex: `${zIndex}`,
@@ -38,7 +41,6 @@ export default function DialogModal({
       >
         {children}
       </dialog>
-    </>,
-    document.getElementById("modal")!
+    </>
   );
 }

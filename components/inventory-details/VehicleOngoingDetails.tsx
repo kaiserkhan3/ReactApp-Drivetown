@@ -188,6 +188,42 @@ export default function VehicleOngoingDetails({
             </div>
           </SwitchCol>
         </SwitchRow>
+        <SwitchRow>
+          <SwitchCol colSpan={colSpan1}>
+            <label htmlFor="isAcv">Is vehicle listed on ACV</label>
+          </SwitchCol>
+          <SwitchCol colSpan={colSpan2}>
+            <div className="form-check form-switch text-center">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="isAcv"
+                name="isAcv"
+                defaultValue={getSwitchValue(values.isAcv!) || 0}
+                checked={values?.isAcv === true}
+                onChange={(e) => switchHandler(e, "isAcv")}
+              />
+            </div>
+          </SwitchCol>
+        </SwitchRow>
+        <SwitchRow>
+          <SwitchCol colSpan={colSpan1}>
+            <label htmlFor="isOve">Is vehicle listed on OVE</label>
+          </SwitchCol>
+          <SwitchCol colSpan={colSpan2}>
+            <div className="form-check form-switch text-center">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="isOve"
+                name="isOve"
+                defaultValue={getSwitchValue(values.isOve!) || 0}
+                checked={values?.isOve === true}
+                onChange={(e) => switchHandler(e, "isOve")}
+              />
+            </div>
+          </SwitchCol>
+        </SwitchRow>
       </div>
     </div>
   );

@@ -16,10 +16,12 @@ import { FaRegSave } from "react-icons/fa";
 import { IoCloseCircleSharp } from "react-icons/io5";
 import { AddedCostImageDto } from "@/models/inventory/addedcost.model";
 import { useUserData } from "@/hooks/useUserData";
+import { openDocumentInNewTab } from "@/utilities";
 
 type AddedCostDetailsProps = {
   inventoryId?: number;
   contractors: RepresentativeDto[];
+  updatedAddedCost: (totalAddedCost: number) => void;
 };
 
 const initialStateValues: AddecCostDto = {
@@ -38,11 +40,12 @@ const initialStateValues: AddecCostDto = {
 export const AddedCostDetails = ({
   inventoryId,
   contractors,
+  updatedAddedCost,
 }: AddedCostDetailsProps) => {
   const { userId } = useUserData();
-  const { addedCostData } = useGetAdedCostDataById(inventoryId!);
+  const { addedCostData, refetch } = useGetAdedCostDataById(inventoryId!);
 
-  const { upsertAddedCostCUD, data } = useAddedCostCUD();
+  const { upsertAddedCostCUD, data } = useAddedCostCUD(inventoryId!);
   const [files, setFiles] = useState<File[]>([]);
 
   const dispatch = useStoreDispatch();
@@ -101,10 +104,7 @@ export const AddedCostDetails = ({
   };
 
   const viewImage = (item: AddedCostImageDto) => {
-    window.open(
-      process.env.NEXT_PUBLIC_ADDEDCOST_FILE_BASE_URL + item.imageName,
-      "_blank"
-    );
+    openDocumentInNewTab("AddedCost", item.imageName);
   };
 
   const fileUploadHandler = (event: ChangeEvent<HTMLInputElement>) => {
@@ -123,13 +123,30 @@ export const AddedCostDetails = ({
     });
   };
 
+  const closeBtnHandler = () => {
+    const totalAddedCost =
+      addedCostData?.reduce((acum, cur) => acum + (cur?.price || 0), 0) || 0;
+    updatedAddedCost(totalAddedCost);
+    dispatch(
+      updateAddedCostModalCloseState({
+        isAddedCostModalVisible: false,
+      })
+    );
+  };
+
   const onEditRowHandler = (row: AddecCostDto) => {
     setValues(row);
   };
-  const onDeleteRowHandler = (row: AddecCostDto) => {
+  const onDeleteRowHandler = async (row: AddecCostDto) => {
     const formData = new FormData();
     formData.append("addedCostDto", JSON.stringify(row));
-    const response = upsertAddedCostCUD({ formData: formData, operation: "d" });
+    const response = await upsertAddedCostCUD({
+      formData: formData,
+      operation: "d",
+    });
+    setTimeout(() => {
+      refetch();
+    }, 10);
   };
 
   const contractChangeHandler = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -145,7 +162,7 @@ export const AddedCostDetails = ({
     });
   };
 
-  const submitHandler = (
+  const submitHandler = async (
     values: AddecCostDto,
     actions: FormikHelpers<AddecCostDto>
   ) => {
@@ -155,13 +172,14 @@ export const AddedCostDetails = ({
     });
     formData.append("addedCostDto", JSON.stringify(values));
     const operation = values.addedCostId ? "u" : "i";
-    const response = upsertAddedCostCUD({ formData, operation });
+    const response = await upsertAddedCostCUD({ formData, operation });
     toast.success("Changes are updated successfully!!");
+    actions.resetForm();
   };
 
   return (
     <>
-      <div className="d-flex flex-column p-2 gap-3 align-items-center">
+      <div className="d-flex flex-column p-5 gap-3 align-items-center">
         <form onSubmit={handleSubmit}>
           <div className="row g-3" style={{ width: "28rem" }}>
             <div className="col-md-6">
@@ -171,7 +189,7 @@ export const AddedCostDetails = ({
                 id="contractorId"
                 name="contractorId"
                 aria-label="Floating label select example"
-                defaultValue={values?.contractorId}
+                value={values?.contractorId || ""}
                 onChange={contractChangeHandler}
                 onBlur={handleBlur}
               >
@@ -193,7 +211,7 @@ export const AddedCostDetails = ({
                 id="adate"
                 name="adate"
                 placeholder="Select date"
-                defaultValue={moment(values.adate).format("YYYY-MM-DD")}
+                value={moment(values.adate).format("YYYY-MM-DD")}
                 onChange={handleChange}
                 onBlur={handleBlur}
               />
@@ -231,7 +249,7 @@ export const AddedCostDetails = ({
                 id="price"
                 name="price"
                 placeholder="Enter Cost"
-                defaultValue={values.price}
+                value={values.price || ""}
                 onChange={priceChangeHandler}
                 onBlur={handleBlur}
               />
@@ -302,13 +320,7 @@ export const AddedCostDetails = ({
               <button
                 type="button"
                 className="btn btn-danger btn-hover"
-                onClick={() =>
-                  dispatch(
-                    updateAddedCostModalCloseState({
-                      isAddedCostModalVisible: false,
-                    })
-                  )
-                }
+                onClick={closeBtnHandler}
               >
                 <IoCloseCircleSharp size="20px" color="#fff" className="me-1" />
                 Close
@@ -317,17 +329,13 @@ export const AddedCostDetails = ({
                 type="submit"
                 className="ms-auto btn btn-primary btn-hover"
               >
-                {values.addedCostId ? (
-                  <MdBrowserUpdated size="20px" color="#fff" className="me-2" />
-                ) : (
-                  <FaRegSave size="20px" color="#fff" className="me-2" />
-                )}
+                <i className="bi bi-floppy2 text-white me-2"></i>
                 {values.addedCostId ? "Update" : "Save"}
               </button>
             </div>
           </div>
         </form>
-        <div className="d-flex" style={{ width: "28rem" }}>
+        <div className="d-flex">
           {addedCostData!?.length > 0 && (
             <AddedCostList
               rows={addedCostData!}

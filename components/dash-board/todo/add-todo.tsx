@@ -62,7 +62,6 @@ export const AddTodo = ({ id }: AddTodoProps) => {
       values.createdById = userId;
       values.createdDate = moment().utc().format();
     }
-    console.log("Values", values);
     upsertBookmark(values);
     dispatch(updateIsAddTodoVisibleFlag({ isAddTodoVisible: false }));
   };

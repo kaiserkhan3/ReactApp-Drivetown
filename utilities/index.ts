@@ -25,3 +25,16 @@ export const openDocumentInNewTab = (folderName: string, fileName: string) => {
   const uri = `${process.env.NEXT_PUBLIC_SHARED_FOLDER_URL!}${folderName}/${fileName}`;
   window.open(uri, "_blank");
 };
+
+export const buildImagePath = (folderName: string, fileName: string) => {
+  return `${process.env.NEXT_PUBLIC_SHARED_FOLDER_URL!}${folderName}/${fileName}`;
+};
+
+export const getMonths = (selectedYear: number) => {
+  const currentYear = moment().year();
+  const max = selectedYear === currentYear ? moment().month() : 11; // 0-based
+  const months = Array.from({ length: max + 1 }, (_, i) =>
+    moment().month(i).format("MMMM")
+  );
+  return months;
+};

@@ -80,11 +80,11 @@ export const initialValues: Inventory = {
 
   amythingMike: "",
 
-  others: "",
+  others: undefined,
 
-  keyNo: "",
+  keyNo: undefined,
 
-  numberOfKeys: "",
+  numberOfKeys: undefined,
 
   salePriceCash: undefined,
 

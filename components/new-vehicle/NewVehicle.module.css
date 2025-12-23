@@ -1,0 +1,73 @@
+:root {
+  --form-bg: hsl(0, 0%, 96%);
+  --control-height: 44px;
+  --label-color: #555;
+}
+.container {
+  width: 90vw;
+  min-height: 60vh;
+  background-color: var(--form-bg);
+  padding: 1rem;
+  margin: 1rem auto;
+  border-radius: 6px;
+}
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+.leftCol,
+.rightCol {
+  display: block;
+}
+.formFloating {
+  margin-bottom: 0.75rem;
+}
+.formControl {
+  height: var(--control-height);
+  padding: 0.5rem 0.75rem;
+  text-transform: none; /* avoid uppercase forcing */
+}
+.formLabel {
+  text-transform: none;
+  color: var(--label-color);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.radioRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+.radioInline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 1rem;
+}
+.rightActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+.textFull {
+  width: 100%;
+}
+.note {
+  color: #d9534f; /* bootstrap danger color for validation message */
+}
+@media (max-width: 900px) {
+  .formRow {
+    grid-template-columns: 1fr;
+  }
+}

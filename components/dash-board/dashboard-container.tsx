@@ -12,16 +12,24 @@ import { TodoContainer } from "./todo/todo-container";
 import { RecentActivity } from "./recent-activities/recent-activity";
 import { useStoreDispatch } from "@/app/store/hook";
 import {
+  updateAcv,
   updateMake,
   updateOnlineStatus,
+  updateOve,
   updateSearchText,
 } from "@/app/store/search-slice";
 import { OnlineStatus } from "@/models/inventory";
+import { checkLoginValid } from "@/utilities/check-login-valid";
+import { useRouter } from "next/navigation";
+import { useUserData } from "@/hooks/useUserData";
 
 export const DashboardContainer = () => {
+  const router = useRouter();
   const [saleType, setSaleType] = useState<string>("All");
   const [year, setYear] = useState<number>(getCurrentYear());
+  const [mounted, setMounted] = useState(false);
   const dispatch = useStoreDispatch();
+  const { role } = useUserData();
 
   const inputChangeHandler = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -33,10 +41,19 @@ export const DashboardContainer = () => {
   };
 
   useEffect(() => {
+    if (!checkLoginValid()) {
+      router.push("/");
+    }
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     return () => {
       dispatch(updateSearchText(undefined));
       dispatch(updateMake(undefined));
       dispatch(updateOnlineStatus(OnlineStatus.All));
+      dispatch(updateAcv(undefined));
+      dispatch(updateOve(undefined));
     };
   });
 
@@ -175,58 +192,66 @@ export const DashboardContainer = () => {
         </div>
 
         <div className="row">
-          <div className="col-lg-8 mb-4">
-            <div className="card">
-              <div className="card-header">
-                <h5 className="card-title">Profit Margin</h5>
-                <div className="card-actions">
-                  <div className="btn-group btn-group-sm">
-                    <button
-                      type="button"
-                      className="btn btn-outline-secondary active"
-                    >
-                      Last 3 Months
-                    </button>
-                    <button type="button" className="btn btn-outline-secondary">
-                      Last 6 Months
-                    </button>
-                    <button type="button" className="btn btn-outline-secondary">
-                      Full Year
-                    </button>
-                  </div>
-                  <div className="dropdown">
-                    <button
-                      className="btn btn-sm btn-outline-secondary dropdown-toggle"
-                      type="button"
-                      id="exportProfitDropdown"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <i className="bi bi-download"></i>
-                    </button>
-                    <ul
-                      className="dropdown-menu dropdown-menu-end"
-                      aria-labelledby="exportProfitDropdown"
-                    >
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          <i className="bi bi-filetype-csv"></i> Export CSV
-                        </a>
-                      </li>
-                      <li>
-                        <a className="dropdown-item" href="#">
-                          <i className="bi bi-filetype-json"></i> Export JSON
-                        </a>
-                      </li>
-                    </ul>
+          {mounted && role === "Admin" && (
+            <div className="col-lg-8 mb-4">
+              <div className="card">
+                <div className="card-header">
+                  <h5 className="card-title">Profit Margin</h5>
+                  <div className="card-actions">
+                    <div className="btn-group btn-group-sm">
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary active"
+                      >
+                        Last 3 Months
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                      >
+                        Last 6 Months
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline-secondary"
+                      >
+                        Full Year
+                      </button>
+                    </div>
+                    <div className="dropdown">
+                      <button
+                        className="btn btn-sm btn-outline-secondary dropdown-toggle"
+                        type="button"
+                        id="exportProfitDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                      >
+                        <i className="bi bi-download"></i>
+                      </button>
+                      <ul
+                        className="dropdown-menu dropdown-menu-end"
+                        aria-labelledby="exportProfitDropdown"
+                      >
+                        <li>
+                          <a className="dropdown-item" href="#">
+                            <i className="bi bi-filetype-csv"></i> Export CSV
+                          </a>
+                        </li>
+                        <li>
+                          <a className="dropdown-item" href="#">
+                            <i className="bi bi-filetype-json"></i> Export JSON
+                          </a>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="card-body">
-                <ProfitWithMargin year={year} />
+                <div className="card-body">
+                  <ProfitWithMargin year={year} />
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="col-lg-4 mb-4">
             <div className="card">

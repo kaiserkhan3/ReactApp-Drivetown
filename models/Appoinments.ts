@@ -19,6 +19,7 @@ export interface AppointmentDto {
   vehicleInfo?: string | undefined;
   sendSMS?: boolean | undefined;
   message?: string | undefined;
+  isVehiclePurchased?: boolean;
 }
 
 export const appointmentInitialValues: AppointmentDto = {
@@ -40,6 +41,7 @@ export const appointmentInitialValues: AppointmentDto = {
   vehicleInfo: undefined,
   sendSMS: undefined,
   message: undefined,
+  isVehiclePurchased: false,
 };
 
 export const appointmentAction = {

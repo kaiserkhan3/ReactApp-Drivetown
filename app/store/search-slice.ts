@@ -7,6 +7,8 @@ type searchItem = {
   make: string | undefined;
   year: string | undefined;
   onlineStatus: string | undefined;
+  isAcv?: boolean;
+  isOve?: boolean;
   status: string | undefined;
   displayType: displayType;
 };
@@ -16,6 +18,8 @@ const initialState: searchItem = {
   make: undefined,
   year: undefined,
   onlineStatus: undefined,
+  isAcv: undefined,
+  isOve: undefined,
   status: "Available",
   displayType: "grid",
 };
@@ -36,6 +40,12 @@ export const searchSlice = createSlice({
     updateMake(state, action: PayloadAction<string | undefined>) {
       state.make = action.payload;
     },
+    updateAcv(state, action: PayloadAction<boolean | undefined>) {
+      state.isAcv = action.payload;
+    },
+    updateOve(state, action: PayloadAction<boolean | undefined>) {
+      state.isOve = action.payload;
+    },
     updateDisplayType(state, action: PayloadAction<displayType>) {
       state.displayType = action.payload;
     },
@@ -52,4 +62,6 @@ export const {
   updateYear,
   updateDisplayType,
   updateOnlineStatus,
+  updateAcv,
+  updateOve,
 } = searchSlice.actions;

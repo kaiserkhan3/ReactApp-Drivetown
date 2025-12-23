@@ -6,11 +6,10 @@ import { SaleReportTable } from "./sale-report-table";
 import { GroupControl } from "../control-components/group-control";
 import { range } from "@/utilities";
 import { useGetAllExpensesForGivenYear } from "@/hooks/useFixedExpense";
-import { bookmarkCud } from "@/actions/bookmark-actions";
-import { boolean } from "yup";
 import DialogModal from "../control-components/DialogModal";
 import { ViewAndEditExpenses } from "../expenses/view-edit-expenses";
 import { LogFixedExpenses } from "../expenses/log-fixed-expenses";
+
 export const SaleReportContainer = () => {
   const [selectedYear, setSelectedYear] = useState<number>(moment().year());
   const [months, setMonths] = useState<string[]>([]);
@@ -25,19 +24,11 @@ export const SaleReportContainer = () => {
 
   const getMonths = () => {
     const currentYear = moment().year();
-    const currentMonth = moment().month() + 1;
-
-    if (selectedYear === currentYear) {
-      const months = Array.apply(0, Array(currentMonth)).map(function (_, i) {
-        return moment(new Date()).month(i).format("MMMM");
-      });
-      setMonths(months);
-    } else {
-      const months = Array.apply(0, Array(12)).map(function (_, i) {
-        return moment(new Date()).month(i).format("MMMM");
-      });
-      setMonths(months);
-    }
+    const max = selectedYear === currentYear ? moment().month() : 11; // 0-based
+    const months = Array.from({ length: max + 1 }, (_, i) =>
+      moment().month(i).format("MMMM")
+    );
+    setMonths(months);
   };
 
   useEffect(() => {
@@ -125,6 +116,7 @@ export const SaleReportContainer = () => {
               className="btn btn-primary btn-hover"
               onClick={() => setIsExpenseModalVisible(true)}
             >
+              <i className="bi bi-cash-coin text-white me-2"></i>
               View Expenses for the
               <span>{` ${selectedMonth} ${selectedYear}`}</span>
             </button>
@@ -136,6 +128,7 @@ export const SaleReportContainer = () => {
               className="btn btn-primary btn-hover"
               onClick={() => setIsExpenseModalVisible(true)}
             >
+              <i className="bi bi-cash-coin text-white me-2"></i>
               Add expenses for the
               <span>{` ${selectedMonth} ${selectedYear}`}</span>
             </button>

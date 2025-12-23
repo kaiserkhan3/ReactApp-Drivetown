@@ -1,4 +1,5 @@
 import { DashboardContainer } from "@/components/dash-board/dashboard-container";
+import AllRecentActivities from "@/components/dash-board/recent-activities/all-recent-activities";
 import ThreeDotLoader from "@/components/loading-control/Three-dots-loader/ThreeDotsLoader";
 import { PageHeaderCommon } from "@/components/master-page/page-header";
 import { Suspense } from "react";

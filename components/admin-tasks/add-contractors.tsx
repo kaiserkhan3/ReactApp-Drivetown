@@ -47,7 +47,6 @@ export const AddContractor = ({
     values: RepresentativeDto,
     formikHelpers: FormikHelpers<RepresentativeDto>
   ) => {
-    console.log(values);
     upsertRepresentative(values);
     close();
   };

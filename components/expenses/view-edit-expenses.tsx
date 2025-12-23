@@ -89,7 +89,6 @@ export const ViewAndEditExpenses = ({
     index: number
   ) => {
     const { name, value } = event.target;
-    console.log(`${name}: ${value}`);
     setTableSections((prevState) => {
       const list = { ...prevState };
       let selectedRow = list[key as keyof ExpenseTypes];

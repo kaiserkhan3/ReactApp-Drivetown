@@ -1,4 +1,4 @@
-"use server";
+"use client";
 import { UserShortInfo } from "@/../../models/inventory/models";
 const baseUrl = process.env.NEXT_PUBLIC_BASE_API_URL;
 

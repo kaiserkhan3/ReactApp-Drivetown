@@ -1,10 +1,10 @@
 import { getAllDailyExpenses } from "@/actions/daily-expenses-actions";
 import { useQuery } from "@tanstack/react-query";
 
-export const useGetAllDailyExpensesList = () => {
+export const useGetAllDailyExpensesList = (year: number) => {
   const { data, refetch } = useQuery({
     queryKey: ["dailyExpenses"],
-    queryFn: getAllDailyExpenses,
+    queryFn: () => getAllDailyExpenses(year),
   });
 
   return {

@@ -43,7 +43,7 @@ export const Appointment = ({
   const dispatch = useStoreDispatch();
   const { messageTemplatesData } = useGetSMSTemplates();
   const [messagePopup, setMessagePopup] = useState<
-    { isVisible: boolean; message: string; actionType: string } | undefined
+    { isVisible?: boolean; message?: string; actionType?: string } | undefined
   >(undefined);
 
   const { vehiclesDataForDropdown } = useGetVehicleDataForDropDown();
@@ -56,6 +56,14 @@ export const Appointment = ({
     month,
     year
   );
+
+  const cancelHandler = () => {
+    setMessagePopup((prev) => ({
+      isVisible: false,
+      message: prev?.message ?? "",
+      actionType: prev?.actionType ?? "",
+    }));
+  };
 
   const { values, setValues, handleChange, handleSubmit, errors, touched } =
     useFormik<AppointmentDto>({
@@ -78,6 +86,7 @@ export const Appointment = ({
         ? values.action
         : appointmentAction.created;
     values.contactNo = unFormatPhoneNumber(values.contactNo!);
+    values.isVehiclePurchased = false;
     if (values.appointmentId && values.appointmentId > 0) {
       values.updatedById = userId;
     } else {
@@ -133,8 +142,7 @@ export const Appointment = ({
     values.sendSMS = data.sendSms;
     values.message = data.message;
     values.updatedById = userId;
-    console.log(values);
-
+    values.isVehiclePurchased = data.isVehiclePurchased;
     if (!values.appointmentId) dispatch(updateAppointmentCount());
     upsertAppoinment(values);
 
@@ -188,9 +196,10 @@ export const Appointment = ({
         <DialogModal top={"18rem"}>
           <SendMessage
             notes={values.notes || ""}
-            message={messagePopup.message}
-            apnType={messagePopup.actionType}
+            message={messagePopup?.message!}
+            apnType={messagePopup?.actionType!}
             sendData={onMessageTemplateSaveChanges}
+            cancelHandler={cancelHandler}
           />
         </DialogModal>
       )}
@@ -343,14 +352,6 @@ export const Appointment = ({
             </button>
             {values.appointmentId && (
               <>
-                {/* <button
-                  type="button"
-                  className="btn btn-danger text-center align-content-center"
-                >
-                  <MdDeleteForever size="18px" color="white" className="me-1" />
-                  Delete
-                </button> */}
-
                 <button
                   type="button"
                   className="btn btn-success btn-hover"

@@ -5,19 +5,30 @@ import {
   UpsertUserCUD,
 } from "@/actions/users-actions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useSession } from "next-auth/react";
 const cacheTime = 10 * 60 * 1000;
 
 export const useUserData = () => {
-  const { data } = useSession();
-  let user;
-  if (data) {
-    user = data.user.result.user;
+  let userId = null;
+  let userName = null;
+  let role = null;
+  if (typeof window !== "undefined") {
+    const userData = sessionStorage.getItem("user");
+    if (userData) {
+      try {
+        const parsed = JSON.parse(userData);
+        // Adjust this path if your user object structure changes
+        const user = parsed?.result?.user;
+        userId = user?.userId ?? null;
+        userName = user?.userName ?? null;
+        role = user?.urole?.trim() ?? null;
+      } catch (e) {
+        // Invalid JSON or structure
+        userId = null;
+        userName = null;
+        role = null;
+      }
+    }
   }
-  const userId = user?.userId;
-  const userName = user?.userName;
-  const role = user?.urole;
-
   return { userId, userName, role };
 };
 

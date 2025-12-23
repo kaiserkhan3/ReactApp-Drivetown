@@ -7,9 +7,9 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import { TanstackProvider } from "@/components/providers/Tanstackprovider";
 import { CssBaseline } from "@mui/material";
 import { StoreProvider } from "@/components/providers/StoreProvider";
-import Provider from "@/components/providers/Provider";
 
 import { MasterLayout } from "@/components/master-page/master-layout";
+import { ResponsiveMasterLayout } from "@/components/master-page/responsive-master-layout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,11 +35,9 @@ export default function AfterLoginLayout({
     <>
       <AppRouterCacheProvider options={{ key: "css" }}>
         <StoreProvider>
-          <Provider>
-            <TanstackProvider>
-              <MasterLayout>{children}</MasterLayout>
-            </TanstackProvider>
-          </Provider>
+          <TanstackProvider>
+            <ResponsiveMasterLayout>{children}</ResponsiveMasterLayout>
+          </TanstackProvider>
         </StoreProvider>
         <CssBaseline />
         <BootstapClient />

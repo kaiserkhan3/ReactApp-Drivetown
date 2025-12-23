@@ -1,3 +1,6 @@
+import { AppointmentDto } from "../Appoinments";
+import { NotificationDto } from "../notification.model";
+
 export interface Inventory {
   inventoryId: number | undefined;
 
@@ -80,9 +83,9 @@ export interface Inventory {
 
   others?: string;
 
-  keyNo?: string;
+  keyNo?: number;
 
-  numberOfKeys?: string;
+  numberOfKeys?: number;
 
   salePriceCash?: number;
 
@@ -147,6 +150,8 @@ export interface Inventory {
   isWholeSale?: boolean;
 
   isRepairShop?: boolean;
+  isAcv?: boolean;
+  isOve?: boolean;
 
   days?: number;
   onlineDays?: string;
@@ -182,6 +187,8 @@ export interface MasterPageData {
   between3060daysCount: number;
   moreThan60DaysCount: number;
   monthlyProfit: number;
+  acvCount: number;
+  oveCount: number;
 }
 
 export interface SalesDataByTypeOfSale {
@@ -326,5 +333,19 @@ export interface DailyExpenseDto {
   isActive?: boolean;
   disabled?: boolean;
   isEdit?: boolean;
+  isAmountError?: boolean;
   isError?: boolean;
+  rowFiles?: File[] | undefined;
+  attachments?: string | undefined;
+}
+
+export interface FileObject {
+  FileName: string;
+  ModifiedFileName: string;
+}
+
+export interface VehicleUpdatesDto {
+  dailyExpenses: DailyExpenseDto[];
+  appointments: AppointmentDto[];
+  notifications: NotificationDto[];
 }

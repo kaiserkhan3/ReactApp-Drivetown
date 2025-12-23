@@ -1,12 +1,10 @@
 "use client";
 import { Inventory } from "@/models/inventory";
 import { ChangeEvent } from "react";
-import DialogModal from "../control-components/DialogModal";
 import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { updateAddedCostModalCloseState } from "@/app/store/modal-slice";
-import { AddedCostDetails } from "./AddedCostDetails";
-import { useRepresentative } from "@/hooks/useInventory";
 import { FormikErrors, FormikTouched } from "formik";
+import Link from "next/link";
 
 type VehicleCostDetailsProps = {
   inventoryId: number;
@@ -30,10 +28,6 @@ export default function VehicleCostDetails({
   touched,
   handleSubmit,
 }: VehicleCostDetailsProps) {
-  const { contractors } = useRepresentative();
-  const isAddedCostModalVisible = useStoreSelector(
-    (state) => state.modal.isAddedCostModalVisible
-  );
   const dispatch = useStoreDispatch();
 
   const costControlsChaneHandler = (event: ChangeEvent<HTMLInputElement>) => {
@@ -46,47 +40,25 @@ export default function VehicleCostDetails({
   };
 
   function calculateTotalSalePriceAndProfit() {
-    const isWholsale = values.typeOfSale === "Wholesale" || values.isWholeSale;
     const salePrice = values?.salePrice;
 
     if (!salePrice) return;
 
-    const totalSalePrice = (
-      (isWholsale ? 0 : 150) +
-      (isWholsale ? 0 : 142) +
-      (isWholsale ? 0 : salePrice * (6.25 / 100)) +
-      salePrice -
-      (values?.dealerFee ?? 0)
-    ).toFixed(2);
-
-    const calCulatedTotalSalePrice =
-      totalSalePrice +
-      " " +
-      (isWholsale
-        ? "- As sold type is wholesale, no fee added to sale price"
-        : "- Includes document, title fee and sale tax");
+    const totalSalePrice = (salePrice - (values?.dealerFee ?? 0)).toFixed(2);
 
     const profit = (
       parseInt(totalSalePrice) -
-      (values.floorCost ?? 0) -
-      (values.originalCost ?? 0) -
-      (values.totalAddedCost ?? 0) -
-      (values.addedCostFromDailyExpenses ?? 0)
+      (values?.floorCost ?? 0) -
+      (values?.originalCost ?? 0) -
+      (values?.totalAddedCost ?? 0) -
+      (values?.addedCostFromDailyExpenses ?? 0)
     ).toFixed(2);
 
-    return { calCulatedTotalSalePrice, profit };
+    return { totalSalePrice, profit };
   }
 
   return (
     <>
-      {isAddedCostModalVisible && (
-        <DialogModal>
-          <AddedCostDetails
-            inventoryId={inventoryId}
-            contractors={contractors!}
-          />
-        </DialogModal>
-      )}
       <div className="card shadow-lg" style={{ width: "32rem" }}>
         <div className="card-body">
           <h5 className="card-title bg-warning p-2 text-center mb-3 text-white rounded">
@@ -111,7 +83,7 @@ export default function VehicleCostDetails({
               </div>
               <div className="col-md-6 px-2">
                 <p className="mark" style={{ fontSize: "12px" }}>
-                  <a
+                  <Link
                     href="#"
                     onClick={(e) => {
                       e.preventDefault();
@@ -123,34 +95,19 @@ export default function VehicleCostDetails({
                     }}
                     style={{ color: "#5f95ed", cursor: "pointer" }}
                   >
-                    Added Cost: ${values.totalAddedCost ?? 0}
-                  </a>
+                    Added Cost: ${values?.totalAddedCost ?? 0}
+                  </Link>
                   <br />
                   Cost From DailyExpenses: $
                   {values.addedCostFromDailyExpenses ?? 0}
                   <br />
                   Total Original Cost: $
-                  {(values.originalCost ?? 0) +
-                    (values.totalAddedCost ?? 0) +
-                    (values.floorCost ?? 0) +
-                    (values.addedCostFromDailyExpenses ?? 0)}
+                  {(values?.originalCost ?? 0) +
+                    (values?.totalAddedCost ?? 0) +
+                    (values?.floorCost ?? 0) +
+                    (values?.addedCostFromDailyExpenses ?? 0)}
                 </p>
               </div>
-              {/* <div className="form-floating col-md-6 px-2">
-              <input
-                type="text"
-                className="form-control"
-                id="floorCost"
-                name="floorCost"
-                placeholder="Floor Cost"
-                defaultValue={values.floorCost || undefined}
-                onChange={(e) => costControlsChaneHandler(e, "floorCost")}
-              />
-              <label htmlFor="originalCost"> Floor Cost</label>
-              {errors?.floorCost && touched.floorCost && (
-                <p className="text-danger">{errors.floorCost}</p>
-              )}
-            </div> */}
               <div className="form-floating col-md-6 px-2">
                 <input
                   type="text"
@@ -182,45 +139,12 @@ export default function VehicleCostDetails({
                 )}
               </div>
 
-              <div className="form-floating col-md-6 px-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  id="onlineCost"
-                  name="onlineCost"
-                  placeholder="Online Cost"
-                  defaultValue={values.onlineCost || undefined}
-                  onChange={costControlsChaneHandler}
-                />
-                <label htmlFor="onlineCost">Online Cost</label>
-                {errors?.onlineCost && touched.onlineCost && (
-                  <p className="text-danger">{errors.onlineCost}</p>
-                )}
-              </div>
-              <div className="form-floating col-md-6 px-2">
-                <input
-                  type="text"
-                  className="form-control"
-                  id="reducedCost"
-                  name="reducedCost"
-                  placeholder="Reduced Cost"
-                  defaultValue={values.reducedCost || undefined}
-                  onChange={costControlsChaneHandler}
-                />
-                <label htmlFor="reducedCost">Reduced Cost</label>
-                {errors?.reducedCost && touched.reducedCost && (
-                  <p className="text-danger">{errors.reducedCost}</p>
-                )}
-              </div>
               <div className="col-12 px-2">
                 {values?.salePrice != 0 && values.salePrice != undefined && (
                   <p className="mark p-2">
                     Total Sale Price: &nbsp;
                     <span style={{ color: "#5f95ed" }}>
-                      {
-                        calculateTotalSalePriceAndProfit()
-                          ?.calCulatedTotalSalePrice
-                      }
+                      {calculateTotalSalePriceAndProfit()?.totalSalePrice}
                     </span>
                     <br />
                     <span>Profit: </span>
@@ -245,6 +169,7 @@ export default function VehicleCostDetails({
               <div className="col-md-4"></div>
               <div className="col-md-6">
                 <button className="btn btn-primary" type="submit">
+                  <i className="bi bi-floppy2 text-white me-2"></i>
                   Save Cost Details
                 </button>
               </div>

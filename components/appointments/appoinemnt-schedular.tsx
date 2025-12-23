@@ -17,6 +17,8 @@ import { useGetSMSTemplates } from "@/hooks/useMessageTemplate";
 import { replaceHashKeys } from "@/utilities/replace-hash-keys";
 import ThreeDotLoader from "../loading-control/Three-dots-loader/ThreeDotsLoader";
 import { PageHeaderCommon } from "../master-page/page-header";
+import { checkLoginValid } from "@/utilities/check-login-valid";
+import { useRouter } from "next/navigation";
 
 export default function AppointmentsScheduler() {
   const [currentEvents, setCurrentEvents] = useState([]);
@@ -25,7 +27,7 @@ export default function AppointmentsScheduler() {
     (state) => state.modal.isAppointmentVisble
   );
   const dispatch = useStoreDispatch();
-
+  const router = useRouter();
   const [monthYear, setMonthYear] = useState<{
     month: number;
     year: number;
@@ -78,6 +80,11 @@ export default function AppointmentsScheduler() {
     }
   };
 
+  useEffect(() => {
+    if (!checkLoginValid()) {
+      router.push("/");
+    }
+  }, []);
   useEffect(() => {
     refetchAppointments();
   }, [appointmentsData]);
@@ -204,12 +211,14 @@ export default function AppointmentsScheduler() {
 function getBackgroundColorByAction(eventInfo: any) {
   let backgroundColor = "rgb(55, 136, 216)";
   const action = eventInfo.event._def.extendedProps.item.action;
+  const isVehiclePurchased =
+    eventInfo.event._def.extendedProps.item.isVehiclePurchased;
   switch (action) {
     case "ReScheduled":
       backgroundColor = "orange";
       break;
     case "Show":
-      backgroundColor = "green";
+      backgroundColor = isVehiclePurchased ? "purple" : "green";
       break;
     case "NoShow":
       backgroundColor = "red";
@@ -223,13 +232,15 @@ function getBackgroundColorByAction(eventInfo: any) {
 
 function renderEventContent(eventInfo: any) {
   const action = eventInfo.event._def.extendedProps.item.action;
+  const isVehiclePurchased =
+    eventInfo.event._def.extendedProps.item.isVehiclePurchased;
   let backgroundColor = "";
   switch (action) {
     case "ReScheduled":
       backgroundColor = "orange";
       break;
     case "Show":
-      backgroundColor = "green";
+      backgroundColor = isVehiclePurchased ? "purple" : "green";
       break;
     case "NoShow":
       backgroundColor = "red";
@@ -256,7 +267,7 @@ function Sidebar({
   handleClickEvent: (event: any) => void;
 }) {
   return (
-    <div className={classes.demoappsidebar}>
+    <div className={`${classes.demoappsidebar}`} style={{ width: "30rem" }}>
       <Legend />
       <div className={classes.demoappsidebarsection}>
         <h2>Instructions</h2>
@@ -322,18 +333,24 @@ function SidebarEvent({
 
 function Legend() {
   return (
-    <div>
+    <div className="m-2">
       <h4 className="m-2">Legend:</h4>
-      <div className="d-flex justify-content-md-between m-2">
+      <div className="d-flex justify-content-sm-between gap-2">
         <div
-          className="p-2 rounded"
+          className="p-2 rounded text-white"
           style={{ backgroundColor: "rgb(55, 136, 216)" }}
         >
           Created
         </div>
-        <div className="p-2 bg-success rounded">Show</div>
-        <div className="p-2 bg-danger rounded">NoShow</div>
-        <div className="p-2 bg-warning rounded">Rescheduled</div>
+        <div className="p-2 bg-success rounded text-white">Show</div>{" "}
+        <div
+          className="p-2 rounded text-white"
+          style={{ backgroundColor: "purple" }}
+        >
+          Purchased
+        </div>
+        <div className="p-2 bg-danger rounded text-white">NoShow</div>
+        <div className="p-2 bg-warning rounded text-white">Rescheduled</div>
       </div>
     </div>
   );

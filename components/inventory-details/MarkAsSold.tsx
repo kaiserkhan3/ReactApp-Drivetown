@@ -15,26 +15,30 @@ import { formatPhoneNumber, unFormatPhoneNumber } from "@/utilities";
 
 type MarkAsSoldProps = {
   initialValues: Inventory;
+  updateInventoryWhenMarkAsSold?: (inventory: Inventory) => void;
 };
 
-export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
+export default function MarkAsSold({
+  initialValues,
+  updateInventoryWhenMarkAsSold,
+}: MarkAsSoldProps) {
   const [phoneNumber, setPhoneNumber] = useState();
   const { refferedBy } = useRepresentative();
   const dispatch = useStoreDispatch();
-
   const { upsertInventory, data } = useInventoryCUD();
   const {
     values,
-    setValues,
+    setFieldValue,
     handleBlur,
     handleChange,
     handleSubmit,
     errors,
     touched,
   } = useFormik<Inventory>({
-    initialValues: Object.assign(initialValues, {
-      saleDate: moment().format("YYYY-MM-DD"),
-    }),
+    initialValues: {
+      ...initialValues,
+      saleDate: new Date(moment().format("YYYY-MM-DD")),
+    },
     enableReinitialize: true,
     validationSchema: markAsSoldSchema,
     onSubmit: (values, actions) => submitHandler(values, actions),
@@ -55,10 +59,11 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
       values.customerPhoneNumber!
     );
     upsertInventory(values);
+    updateInventoryWhenMarkAsSold && updateInventoryWhenMarkAsSold(values);
     dispatch(updateisMarkAsSoldVisibleFlag({ isMarkAsSoldVisible: false }));
-    // toast.success(
-    //   `${values.iYear} ${values.make} ${values.model} Marked to sold successfully`
-    // );
+    toast.success(
+      `${values.iYear} ${values.make} ${values.model} Marked to sold successfully`
+    );
     toast.success(data?.message);
   };
 
@@ -66,12 +71,17 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
     handleChange(event);
     const value = formatPhoneNumber(event.target.value);
     if (!value) return;
-    setValues((prevState) => {
-      return {
-        ...prevState,
-        customerPhoneNumber: value,
-      };
-    });
+    setFieldValue("customerPhoneNumber", value);
+  };
+
+  const checkboxChangeHandler = (
+    event: ChangeEvent<HTMLInputElement>,
+    name?: string
+  ) => {
+    const field = name || event.target.name;
+    const checked = event.target.checked;
+    // Use setFieldValue to update a single field in Formik
+    setFieldValue(field, checked);
   };
 
   const typesOfSlae = ["Cash", "Finance", "Wholesale", "Export"].map((s) => (
@@ -92,9 +102,7 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
   ) => {
     const value =
       event.target.value === "" ? undefined : parseInt(event.target.value);
-    setValues((prevState) => {
-      return { ...prevState, [controlName]: value };
-    });
+    setFieldValue(controlName, value);
   };
 
   function calculateTotalSalePriceAndProfit() {
@@ -285,8 +293,9 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
                       id="isTitleScanned"
                       name="isTitleScanned"
                       checked={values.isTitleScanned === true}
-                      value={values.isTitleScanned ? 1 : 0}
-                      onChange={handleChange}
+                      onChange={(e) =>
+                        checkboxChangeHandler(e, "isTitleScanned")
+                      }
                       onBlur={handleBlur}
                     />
                     {errors?.isTitleScanned && touched.isTitleScanned && (
@@ -307,8 +316,9 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
                       id="isContractScanned"
                       name="isContractScanned"
                       checked={values.isContractScanned === true}
-                      value={values.isContractScanned ? 1 : 0}
-                      onChange={handleChange}
+                      onChange={(e) =>
+                        checkboxChangeHandler(e, "isContractScanned")
+                      }
                       onBlur={handleBlur}
                     />
                     {errors?.isContractScanned && touched.isContractScanned && (
@@ -331,9 +341,9 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
                       id="isAllExpensesAdded"
                       name="isAllExpensesAdded"
                       checked={values.isAllExpensesAdded === true}
-                      value={values.isAllExpensesAdded ? 1 : 0}
-                      onChange={handleChange}
-                      onBlur={handleBlur}
+                      onChange={(e) =>
+                        checkboxChangeHandler(e, "isAllExpensesAdded")
+                      }
                     />
                     {errors?.isAllExpensesAdded &&
                       touched.isAllExpensesAdded && (
@@ -369,7 +379,6 @@ export default function MarkAsSold({ initialValues }: MarkAsSoldProps) {
                   placeholder="Enter Customer Phone Number"
                   value={values.customerPhoneNumber || ""}
                   onChange={phoneNumberChangeHandler}
-                  onBlur={handleBlur}
                 />
                 <label htmlFor="customerPhoneNumber">
                   Customer Phone Number

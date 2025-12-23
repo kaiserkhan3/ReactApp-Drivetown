@@ -1,0 +1,35 @@
+/* HexTile.css */
+.hex-tile {
+  width: 100px;
+  height: 55px;
+  background-color: #2c3e50;
+  color: white;
+  margin: 27.5px 5px;
+  position: relative;
+  clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s;
+  text-decoration: none;
+}
+
+.hex-tile:hover {
+  transform: scale(1.05);
+}
+
+.hex-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.badge {
+  background-color: #e74c3c;
+  border-radius: 999px;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+}

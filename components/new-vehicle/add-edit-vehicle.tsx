@@ -15,25 +15,27 @@ import { Inventory, VehicleModel } from "@/models/inventory";
 import { useFormik, FormikHelpers } from "formik";
 import { initialValues } from "./NewVehicleInitialValues";
 import { newVehicleSchema } from "@/Schemas";
-import { useStoreDispatch } from "@/app/store/hook";
-import { updateModalCloseState } from "@/app/store/modal-slice";
 import { toast } from "react-toastify";
 import moment from "moment";
 import { useUserData } from "@/hooks/useUserData";
 import { GroupControl } from "../control-components/group-control";
 import { RadioButtonGroupControl } from "../control-components/radio-btn-group-control";
+import ThreeDotLoader from "../loading-control/Three-dots-loader/ThreeDotsLoader";
 
 type AddEditVehicleProps = {
   item?: Inventory;
   setItemUndefined?: () => void;
+  updateVehicleInfo?: (item: Inventory) => void;
 };
 
 export default function AddEditVehicle({
   item,
   setItemUndefined,
+  updateVehicleInfo,
 }: AddEditVehicleProps) {
   const { userId } = useUserData();
   const { purchaseFrom, announcement, buyers } = useRepresentative();
+  const [processing, setProcessing] = useState(false);
 
   const {
     values,
@@ -46,6 +48,7 @@ export default function AddEditVehicle({
   } = useFormik<Inventory>({
     initialValues: Object.assign(initialValues, {
       buyerId: buyers?.[0].representativeId,
+      purchaseDate: moment().format("YYYY-MM-DD"),
     }),
     validationSchema: newVehicleSchema,
     onSubmit: (values, actions) => onSubmit(values, actions),
@@ -53,44 +56,33 @@ export default function AddEditVehicle({
 
   const [modalsList, setModalsList] = useState<VehicleModel[]>([]);
 
-  const { keyNo, refetch } = usePossibleKey();
   const { makeList } = useVehicleMake();
   const { upsertInventory, isSuccess, data } = useInventoryCUD();
 
-  const dispatch = useStoreDispatch();
-
   const purchaseFromData = purchaseFrom?.map((p) => (
-    <option
-      key={p.representativeId + p.representativeFirstName}
-      value={p.representativeId}
-    >
-      {p.representativeFirstName}
-    </option>
-  ));
-
-  const announcementData = announcement?.map((p) => (
-    <option
-      key={p.representativeId + p.representativeFirstName}
-      value={p.representativeFirstName}
-    >
-      {p.representativeFirstName}
-    </option>
-  ));
-
-  const vehicleMakes = makeList?.map((m) => (
-    <option
-      key={m.vehicleMakeId + m.vehicleMakeName}
-      value={m.vehicleMakeName}
-    />
-  ));
-
-  const buyersData = buyers?.map((p) => (
     <option key={p.representativeId} value={p.representativeId}>
       {p.representativeFirstName}
     </option>
   ));
 
+  const announcementData = announcement?.map((p) => (
+    <option key={`ann-${p.representativeId}`} value={p.representativeFirstName}>
+      {p.representativeFirstName}
+    </option>
+  ));
+
+  const vehicleMakes = makeList?.map((m) => (
+    <option key={m.vehicleMakeId} value={m.vehicleMakeName} />
+  ));
+
+  const buyersData = buyers?.map((p) => (
+    <option key={`buyer-${p.representativeId}`} value={p.representativeId}>
+      {p.representativeFirstName}
+    </option>
+  ));
+
   const vinChangeHandler = async (e: ChangeEvent<HTMLInputElement>) => {
+    handleChange(e);
     if (e.target.value.length > 6) {
       const data = await getVinData(e.target.value);
       if (data) {
@@ -102,7 +94,6 @@ export default function AddEditVehicle({
         }));
       }
     }
-    handleChange(e);
   };
 
   const makeChangeHandler = async (e: ChangeEvent<HTMLInputElement>) => {
@@ -130,26 +121,34 @@ export default function AddEditVehicle({
     values: Inventory,
     actions: FormikHelpers<Inventory>
   ) => {
+    setProcessing(true);
     //actions.resetForm();
+    values.numberOfKeys = values.numberOfKeys ? values.numberOfKeys : 0;
     values.buyerId = values.buyerId ?? buyers?.[0].representativeId;
     if (values.inventoryId) {
       values.updatedById = userId;
     } else {
       values.createdById = userId;
     }
-    console.log("Values", values);
-    upsertInventory(values);
-    if (isSuccess) {
-      toast.success(data?.message);
-      setItemUndefined!();
+    await upsertInventory(values);
+    updateVehicleInfo && updateVehicleInfo(values);
+    actions.resetForm();
+    if (!isSuccess) {
+      return <ThreeDotLoader />;
     }
   };
 
   useEffect(() => {
+    if (isSuccess && data) {
+      toast.success(data?.message);
+      setProcessing(false);
+      setItemUndefined && setItemUndefined!();
+    }
+  }, [isSuccess]);
+
+  useEffect(() => {
     if (item) {
       setValues(item);
-    } else {
-      refetch();
     }
   }, [item]);
 
@@ -179,6 +178,7 @@ export default function AddEditVehicle({
                 className="form-control"
                 id="vin"
                 name="vin"
+                maxLength={18}
                 defaultValue={values?.vin}
                 onChange={vinChangeHandler}
                 placeholder="Enter a Vin"
@@ -190,7 +190,7 @@ export default function AddEditVehicle({
             <GroupControl id="make" label="MAKE">
               <input
                 type="text"
-                className="form-control "
+                className={`form-control formControl`}
                 id="make"
                 name="make"
                 list="make-list"
@@ -199,6 +199,8 @@ export default function AddEditVehicle({
                 onChange={makeChangeHandler}
                 onBlur={handleBlur}
               />
+              <datalist id="make-list">{vehicleMakes}</datalist>
+
               {errors?.make && touched.make && (
                 <p className="text-danger">{errors.make}</p>
               )}
@@ -206,7 +208,7 @@ export default function AddEditVehicle({
             <GroupControl id="model" label="MODEL">
               <input
                 type="text"
-                className="form-control "
+                className={`form-control formControl`}
                 id="model"
                 name="model"
                 list="modal-list"
@@ -215,6 +217,15 @@ export default function AddEditVehicle({
                 onBlur={handleBlur}
                 placeholder="Enter a model"
               />
+              <datalist id="modal-list">
+                {modalsList?.map((m, index) => (
+                  <option
+                    key={m.vehicleModelName + index}
+                    value={m.vehicleModelName}
+                  />
+                ))}
+              </datalist>
+
               {errors?.model && touched.model && (
                 <p className="text-danger">{errors.model}</p>
               )}
@@ -256,7 +267,7 @@ export default function AddEditVehicle({
                 className="form-control "
                 id="numberOfKeys"
                 name="numberOfKeys"
-                defaultValue={values?.numberOfKeys! || undefined}
+                value={values?.numberOfKeys! || 0}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="Enter a number of keys"
@@ -531,20 +542,29 @@ export default function AddEditVehicle({
                 <button
                   type="button"
                   onClick={() => {
-                    setItemUndefined!();
-                    dispatch(updateModalCloseState({ modalVisible: false }));
+                    setItemUndefined && setItemUndefined!();
                   }}
-                  className="btn btn-outline-danger btn-hover me-2"
+                  className="btn btn-danger btn-hover me-2"
                 >
+                  <i className="bi bi-x-circle text-white me-2"></i>
                   Close
                 </button>
-                <button type="button" className="btn btn-info ">
+                {/* <button type="button" className="btn btn-info ">
                   Upload
-                </button>
+                </button> */}
               </div>
               <div className="col-6 text-end pe-3">
-                <button type="submit" className="ms-auto btn btn-primary">
-                  Save
+                <button
+                  type="submit"
+                  className="ms-auto btn btn-primary"
+                  disabled={processing}
+                >
+                  <i className="bi bi-floppy2 text-white me-2"></i>
+                  {processing
+                    ? "Processing..."
+                    : values.inventoryId
+                      ? "Update"
+                      : "Save"}
                 </button>
               </div>
             </div>

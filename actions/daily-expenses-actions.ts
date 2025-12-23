@@ -1,25 +1,20 @@
 import { DailyExpenseDto } from "@/models/inventory/models";
 import { baseUrl } from "./added-cost-actions";
 
-export const getAllDailyExpenses = async () => {
+export const getAllDailyExpenses = async (year: number) => {
   let result: DailyExpenseDto[] = [];
-  const response = await fetch(baseUrl + `api/DailyExpenses`);
+  const response = await fetch(baseUrl + `api/DailyExpenses/${year}`);
   if (response.ok) {
     return (result = (await response.json()) as DailyExpenseDto[]);
   }
   return result;
 };
 
-export const addOrUpdateDailyExpense = async (
-  dailyExpense: DailyExpenseDto
-) => {
+export const addOrUpdateDailyExpense = async (formData: FormData) => {
   let result: string = "";
   const response = await fetch(baseUrl + `api/DailyExpenses`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(dailyExpense),
+    body: formData,
   });
   if (response.ok) {
     return (result = (await response.text()) as string);

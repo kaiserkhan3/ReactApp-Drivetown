@@ -2,6 +2,7 @@ export const Status = {
   available: "Available",
   sold: "Sold",
   archive: "Archive",
+  delete: "Delete",
 };
 
 export const documentType = {
@@ -60,4 +61,7 @@ export const OnlineStatus = {
   PendingRegisteration: "PendingRegisteration",
   PendingInspection: "PendingInspection",
   All: "All",
+  isAcv: "isACV",
+  isOve: "isOve",
+  isPurchased: "isPurchased",
 };

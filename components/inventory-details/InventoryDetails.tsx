@@ -1,7 +1,12 @@
 "use client";
 import React, { ChangeEvent, Suspense, useState } from "react";
 
-import { useGetInventoryById, useInventoryCUD } from "@/hooks/useInventory";
+import {
+  useGetInventoryById,
+  useGetVechileUpdates,
+  useInventoryCUD,
+  useRepresentative,
+} from "@/hooks/useInventory";
 import ThreeDotLoader from "../loading-control/Three-dots-loader/ThreeDotsLoader";
 
 import { documentType, imageType, Inventory } from "@/models/inventory";
@@ -16,10 +21,17 @@ import UploadDocuments, { DocumentsMetaData } from "./UploadDocuments";
 import { inventoryDetailsTabs } from "@/models/inventory";
 import { useUserData } from "@/hooks/useUserData";
 import Link from "next/link";
+import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
+import { getCommonData } from "@/app/store/master-data-slice";
+import { VehicleUpdates } from "./vechile-updates";
+import { ImageSlider } from "./image-slider";
+import DialogModal from "../control-components/DialogModal";
+import { AddedCostDetails } from "./AddedCostDetails";
 
 type InventoryDetailsProps = {
   inventoryId?: number;
   close?: () => void;
+  reFetchInventories?: () => void;
 };
 
 const inventoryDocumentsConfig: DocumentsMetaData[] = [
@@ -65,7 +77,16 @@ const inventoryImagesConfig: DocumentsMetaData[] = [
 export default function InventoryDetails({
   inventoryId,
   close,
+  reFetchInventories,
 }: InventoryDetailsProps) {
+  const { contractors } = useRepresentative();
+  const { vehicleUpdates, refetchVehicleUpdates } = useGetVechileUpdates(
+    inventoryId!
+  );
+  const isAddedCostModalVisible = useStoreSelector(
+    (state) => state.modal.isAddedCostModalVisible
+  );
+  const dispatch = useStoreDispatch();
   const [activeTab, setActiveTab] = useState<string>(
     inventoryDetailsTabs.details
   );
@@ -75,8 +96,6 @@ export default function InventoryDetails({
 
   const { userId, userName, role } = useUserData();
   const isAdmin = role?.trim() === "Admin";
-
-  console.log("isAdmin", isAdmin);
 
   const {
     values,
@@ -93,7 +112,7 @@ export default function InventoryDetails({
     onSubmit: (values, actions) => submitHandler(values, actions),
   });
 
-  const { upsertInventory, isSuccess, isPending, status } = useInventoryCUD();
+  const { upsertInventory, isSuccess, isPending } = useInventoryCUD();
 
   if (isFetching) {
     return <ThreeDotLoader />;
@@ -126,7 +145,16 @@ export default function InventoryDetails({
       }
     });
     handleSubmit();
+    refreshData();
   };
+
+  const refreshData = () => {
+    setTimeout(() => {
+      reFetchInventories && reFetchInventories();
+      dispatch(getCommonData());
+    }, 300);
+  };
+
   const titleSwitchHandler = (event: ChangeEvent<HTMLInputElement>) => {
     handleChange(event);
     const value = event.target.checked ? "Here" : "Not Here";
@@ -134,6 +162,7 @@ export default function InventoryDetails({
       return { ...prevState, title: value };
     });
     handleSubmit();
+    refreshData();
   };
 
   const submitHandler = (
@@ -143,6 +172,15 @@ export default function InventoryDetails({
     values.updatedById = userId;
     upsertInventory(values);
     toast.success("Changes are updated successfully!!");
+    // setTimeout(() => {
+    //   refetch();
+    // }, 500);
+  };
+
+  const updatedAddedCost = (totalAddedCost: number) => {
+    setValues((prevValues) => {
+      return { ...prevValues!, totalAddedCost: totalAddedCost };
+    });
   };
 
   if (isError) {
@@ -151,6 +189,15 @@ export default function InventoryDetails({
 
   return (
     <>
+      {isAddedCostModalVisible && (
+        <DialogModal>
+          <AddedCostDetails
+            inventoryId={inventoryId}
+            contractors={contractors!}
+            updatedAddedCost={updatedAddedCost}
+          />
+        </DialogModal>
+      )}
       <ul className="nav nav-tabs">
         <li className="nav-item">
           <Link
@@ -192,56 +239,67 @@ export default function InventoryDetails({
           </li>
         )}
       </ul>
-      <Suspense fallback={<ThreeDotLoader />}>
-        <div
-          className="container-fluid "
-          style={{ width: "60vw", minHeight: "50vh" }}
-        >
-          {activeTab === inventoryDetailsTabs.details && (
-            <div className="d-flex flex-column gap-3">
-              <form onSubmit={handleSubmit}>
-                <div className="d-flex gap-3 mt-2">
-                  {values && (
-                    <>
-                      <VehicleInfo row={values} />
-                      <VehicleOngoingDetails
-                        handleSubmit={handleSubmit}
-                        switchHandler={switchHandler}
-                        titleSwitchHandler={titleSwitchHandler}
-                        values={values}
-                      />
-                    </>
-                  )}
-                </div>
-              </form>
-            </div>
-          )}
-          {activeTab === inventoryDetailsTabs.documents && (
+      <div
+        className="container-fluid "
+        style={{
+          width: "60vw",
+          minHeight: "50vh",
+          maxHeight: "80vh",
+          overflow: "auto",
+        }}
+      >
+        {activeTab === inventoryDetailsTabs.details && (
+          <div className="d-flex flex-column gap-3">
+            <form onSubmit={handleSubmit}>
+              <div className="d-flex gap-3 mt-2">
+                {values && (
+                  <>
+                    <VehicleInfo inventory={values} />
+                    <VehicleOngoingDetails
+                      handleSubmit={handleSubmit}
+                      switchHandler={switchHandler}
+                      titleSwitchHandler={titleSwitchHandler}
+                      values={values}
+                    />
+                    <VehicleUpdates
+                      data={vehicleUpdates!}
+                      vehicleDetails={`${values?.iYear} ${values?.make} ${values?.model}`}
+                    />
+                  </>
+                )}
+              </div>
+            </form>
+          </div>
+        )}
+        {activeTab === inventoryDetailsTabs.documents && (
+          <UploadDocuments
+            showSlider={false}
+            inventoryId={inventoryId!}
+            fileUploadConfiguration={inventoryDocumentsConfig}
+          />
+        )}
+        {activeTab === inventoryDetailsTabs.images && (
+          <>
             <UploadDocuments
-              inventoryId={inventoryId!}
-              fileUploadConfiguration={inventoryDocumentsConfig}
-            />
-          )}
-          {activeTab === inventoryDetailsTabs.images && (
-            <UploadDocuments
+              showSlider={true}
               inventoryId={inventoryId!}
               fileUploadConfiguration={inventoryImagesConfig}
             />
-          )}
-          {activeTab === inventoryDetailsTabs.costDetails && (
-            <VehicleCostDetails
-              inventoryId={inventoryId!}
-              values={values}
-              handleChange={handleChange}
-              setValues={setValues}
-              errors={errors}
-              touched={touched}
-              handleSubmit={handleSubmit}
-            />
-          )}
-        </div>
-        <InventoryDetailsBtnControls close={close} values={values} />
-      </Suspense>
+          </>
+        )}
+        {activeTab === inventoryDetailsTabs.costDetails && (
+          <VehicleCostDetails
+            inventoryId={inventoryId!}
+            values={values}
+            handleChange={handleChange}
+            setValues={setValues}
+            errors={errors}
+            touched={touched}
+            handleSubmit={handleSubmit}
+          />
+        )}
+      </div>
+      <InventoryDetailsBtnControls close={close} inventory={values} />
     </>
   );
 }

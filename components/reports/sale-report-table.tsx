@@ -1,5 +1,4 @@
 "use client";
-import { useRepresentative } from "@/hooks/useInventory";
 import { useEffect, useState } from "react";
 import DialogModal from "../control-components/DialogModal";
 import { SaleReportDto } from "@/models/inventory";
@@ -8,7 +7,8 @@ import InventoryDetails from "../inventory-details/InventoryDetails";
 import { useStoreDispatch, useStoreSelector } from "@/app/store/hook";
 import { updateModalCloseState } from "@/app/store/modal-slice";
 import { useGetAllExpensesForGivenYear } from "@/hooks/useFixedExpense";
-import { title } from "process";
+import { useGetAllDailyExpensesList } from "@/hooks/useDailyExpense";
+import { sumDailyExpensesByYearAndMonth } from "@/utilities/daily-expense-utils";
 
 type SaleReportTableProps = {
   data: SaleReportDto[];
@@ -36,8 +36,11 @@ export const SaleReportTable = ({
   year,
   month,
 }: SaleReportTableProps) => {
+  const { dailyExpenses, dailyExpenseRefetch } =
+    useGetAllDailyExpensesList(year);
   const { data: yearExpenses } = useGetAllExpensesForGivenYear(year);
   const [expenses, setExpenses] = useState(0);
+  const [dailyExpensesByMonth, setDailyExpensesByMonth] = useState<string>();
   const modalVisible = useStoreSelector((state) => state.modal.modalVisible);
   const [invId, setInvId] = useState<number | undefined>(undefined);
   const dispatch = useStoreDispatch();
@@ -56,6 +59,12 @@ export const SaleReportTable = ({
   };
 
   const calculateExpenseTotals = () => {
+    if (month === "yearlyReport") {
+      return yearExpenses?.reduce(
+        (acc, currentRow) => acc + Number(currentRow.amount || 0),
+        0
+      );
+    }
     return yearExpenses
       ?.filter((i) => i.expenseMonth === month)
       ?.reduce((acc, currentRow) => acc + Number(currentRow.amount || 0), 0);
@@ -63,10 +72,14 @@ export const SaleReportTable = ({
 
   useEffect(() => {
     if (yearExpenses) {
-      console.log("Year Expenses", yearExpenses);
-      setExpenses(calculateExpenseTotals()!);
+      setExpenses(calculateExpenseTotals() as unknown as number);
     }
-  }, [month, yearExpenses]);
+    if (dailyExpenses && dailyExpenses.length > 0) {
+      setDailyExpensesByMonth(
+        sumDailyExpensesByYearAndMonth(dailyExpenses, year, month)!?.toFixed(2)
+      );
+    }
+  }, [month, yearExpenses, dailyExpenses]);
 
   return (
     <>
@@ -104,10 +117,10 @@ export const SaleReportTable = ({
                     <td>{row.color}</td>
                     <td>{row.typeOfSale}</td>
                     <td>{moment(row.saleDate).format("MM-DD-YYYY")}</td>
-                    <td>{`$ ${row.originalCost}`}</td>
-                    <td>{`$ ${row.addedCost}`}</td>
-                    <td>{`$ ${row.salePrice}`}</td>
-                    <td>{`$ ${row.totalOriginalCost}`}</td>
+                    <td>{`$ ${row.originalCost?.toFixed(2)}`}</td>
+                    <td>{`$ ${row.addedCost?.toFixed(2)}`}</td>
+                    <td>{`$ ${row.salePrice?.toFixed(2)}`}</td>
+                    <td>{`$ ${row.totalOriginalCost.toFixed(2)}`}</td>
                     <td
                       style={{
                         color: `${row.profit < 0 ? "red" : "#2820a0"}`,
@@ -119,7 +132,17 @@ export const SaleReportTable = ({
                 <TotalsRow calculateTotals={calculateTotals} />
                 <ExpenseRow expenses={expenses} title="Expenses" />
                 <ExpenseRow
-                  expenses={calculateTotals("profit") - expenses}
+                  expenses={dailyExpensesByMonth!}
+                  title="Expenses from daily log"
+                />
+                <ExpenseRow
+                  expenses={
+                    (
+                      calculateTotals("profit") -
+                      expenses -
+                      Number(dailyExpensesByMonth)
+                    )?.toFixed(2) as unknown as number
+                  }
                   title="Profit"
                 />
               </tbody>
@@ -140,16 +163,16 @@ const TotalsRow = ({
     <tr>
       <th colSpan={7}></th>
       <th>Totals</th>
-      <th>{`$ ${calculateTotals("originalCost")}`}</th>
-      <th>{`$ ${calculateTotals("addedCost")}`}</th>
-      <th>{`$ ${calculateTotals("salePrice")}`}</th>
-      <th>{`$ ${calculateTotals("totalOriginalCost")}`}</th>
+      <th>{`$ ${calculateTotals("originalCost")?.toFixed()}`}</th>
+      <th>{`$ ${calculateTotals("addedCost")?.toFixed()}`}</th>
+      <th>{`$ ${calculateTotals("salePrice")?.toFixed(2)}`}</th>
+      <th>{`$ ${calculateTotals("totalOriginalCost")?.toFixed()}`}</th>
       <th
         style={{
           color: `${calculateTotals("profit") < 0 ? "red" : "green"}`,
           whiteSpace: "nowrap",
         }}
-      >{`$ ${calculateTotals("profit")}`}</th>
+      >{`$ ${calculateTotals("profit")?.toFixed(2)}`}</th>
     </tr>
   );
 };
@@ -158,7 +181,7 @@ const ExpenseRow = ({
   expenses,
   title,
 }: {
-  expenses: number;
+  expenses: string | number;
   title: string;
 }) => {
   return (

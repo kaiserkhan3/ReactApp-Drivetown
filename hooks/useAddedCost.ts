@@ -3,9 +3,10 @@ import {
   upsertAddedCost,
 } from "@/actions/added-cost-actions";
 import { AddedCostImageDto } from "@/models/inventory/addedcost.model";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useAddedCostCUD = () => {
+export const useAddedCostCUD = (inventoryId: number) => {
+  const queryClient = useQueryClient();
   const { mutate, isSuccess, data, isPending, status, error, isError } =
     useMutation({
       mutationFn: ({
@@ -15,6 +16,11 @@ export const useAddedCostCUD = () => {
         formData: FormData;
         operation: string;
       }) => upsertAddedCost(operation, formData),
+      onSuccess: () => {
+        queryClient.invalidateQueries({
+          queryKey: ["AddedCostList", inventoryId],
+        });
+      },
     });
 
   return {
